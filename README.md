@@ -2,6 +2,7 @@
 
 This site provides an AI-powered macroeconomics newsletter with a free beta subscription. The site uses vanilla HTML, Tailwind CSS, and minimal JavaScript.
 
+A demo article is available at `article.html` so readers can preview the content before subscribing.
 ## Development
 Open the `index.html` file in a browser to preview locally. All assets are relative so no build step is required.
 
