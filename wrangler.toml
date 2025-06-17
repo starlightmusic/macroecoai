@@ -1,2 +1,14 @@
-name = "macroecoai"
-pages_build_output_dir = "."
+name = "eth-data-collector"
+pages_build_output_dir = "./website"
+main = "./workers/data-collector.js"
+compatibility_date = "2024-06-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ethiopian-macro-data"
+
+[triggers]
+crons = ["0 9 * * *"]
+
+[vars]
+ENVIRONMENT = "production"
