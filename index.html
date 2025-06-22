@@ -114,11 +114,19 @@
             <h2 class="text-2xl font-semibold text-center mb-8">Live Economic Data for Ethiopia</h2>
             <div id="economic-data-container" class="mb-8">
                 <div class="flex items-center justify-center p-8">
-                    <button onclick="loadLatestEconomicData()" class="btn-primary">
-                        Load Latest Economic Data
-                    </button>
+                    <div class="flex space-x-4 flex-wrap gap-2 justify-center">
+                        <button onclick="loadLatestEconomicData()" class="btn-primary">
+                            Load Latest Economic Data
+                        </button>
+                        <button onclick="triggerDataCollection()" id="trigger-collection-btn-home" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                            🔄 Collect Fresh Data
+                        </button>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Data Collection Status for home page -->
+            <div id="collection-status" class="mb-6"></div>
         </div>
     </section>
 

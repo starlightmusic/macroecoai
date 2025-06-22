@@ -129,12 +129,17 @@ npm run setup:kv        # Show KV namespace setup command
 - Edit `schema.sql`
 - Run `npm run db:reset` to apply changes locally
 
-### 4. Testing Scheduled Functions
-The scheduled function won't run automatically in local development. To test:
+### 4. Testing Data Collection
+You can test data collection in several ways:
 
-1. Use Cloudflare dashboard to manually trigger
-2. Or call the collection functions directly in your Worker code
-3. Or deploy to a staging environment for full testing
+1. **Manual Trigger Button**: Use the "🔄 Collect Fresh Data" button on the website
+2. **API Endpoint**: POST to `http://localhost:8787/api/trigger-collection`
+3. **Scheduled Function**: Deploy to staging/production to test automatic weekly collection
+
+```bash
+# Test manual trigger via curl
+curl -X POST http://localhost:8787/api/trigger-collection
+```
 
 ## Local Development URLs
 

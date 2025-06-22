@@ -326,4 +326,100 @@ document.addEventListener('DOMContentLoaded', function() {
             loadFullEconomicData();
         }
     };
+
+    // Function to manually trigger data collection
+    window.triggerDataCollection = async function() {
+        const button = document.getElementById('trigger-collection-btn') || document.getElementById('trigger-collection-btn-home');
+        const statusEl = document.getElementById('collection-status');
+        
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></span>Collecting Data...';
+        }
+        
+        if (statusEl) {
+            statusEl.innerHTML = '<div class="text-blue-600">Collecting data from APIs...</div>';
+        }
+
+        try {
+            const response = await fetch(`${workerUrl}/api/trigger-collection`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                if (statusEl) {
+                    statusEl.innerHTML = `
+                        <div class="text-green-600 bg-green-50 p-3 rounded-lg border border-green-200">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                Data collection completed successfully!
+                            </div>
+                            <div class="text-sm mt-1 text-green-700">
+                                Completed at: ${new Date(result.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Auto-refresh data after collection
+                setTimeout(() => {
+                    dataManager.clearCache();
+                    if (document.getElementById('economic-data-container')) {
+                        loadLatestEconomicData();
+                    }
+                    if (document.getElementById('economic-chart-container')) {
+                        loadFullEconomicData();
+                    }
+                }, 1000);
+                
+            } else {
+                if (statusEl) {
+                    statusEl.innerHTML = `
+                        <div class="text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                </svg>
+                                Data collection failed
+                            </div>
+                            <div class="text-sm mt-1 text-red-700">
+                                Error: ${result.error}
+                                ${result.details ? `<br>Details: ${result.details}` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+        } catch (error) {
+            console.error('Failed to trigger data collection:', error);
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <div class="text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                            </svg>
+                            Failed to trigger data collection
+                        </div>
+                        <div class="text-sm mt-1 text-red-700">
+                            ${error.message}
+                        </div>
+                    </div>
+                `;
+            }
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '🔄 Collect Fresh Data';
+            }
+        }
+    };
 });

@@ -28,6 +28,10 @@ export default {
         return await getLatestData(env, corsHeaders);
       }
 
+      if (path === '/api/trigger-collection' && request.method === 'POST') {
+        return await triggerDataCollection(env, corsHeaders);
+      }
+
       // Return 404 for unknown endpoints
       return new Response('Not Found', { 
         status: 404,
@@ -324,6 +328,47 @@ async function getLatestData(env, corsHeaders) {
     return new Response(JSON.stringify({
       success: false,
       error: 'Failed to fetch latest data'
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+  }
+}
+
+async function triggerDataCollection(env, corsHeaders) {
+  try {
+    console.log('Manual data collection triggered...');
+    
+    // Collect economic data
+    await collectEconomicData(env);
+    
+    // Collect news data  
+    await collectNewsData(env);
+    
+    console.log('Manual data collection completed successfully');
+    
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Data collection completed successfully',
+      timestamp: new Date().toISOString()
+    }), {
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+    
+  } catch (error) {
+    console.error('Manual data collection failed:', error);
+    
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Data collection failed',
+      details: error.message,
+      timestamp: new Date().toISOString()
     }), {
       status: 500,
       headers: {

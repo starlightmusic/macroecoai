@@ -54,12 +54,15 @@
         <div class="container mx-auto px-4">
             <h1 class="text-4xl md:text-5xl hero-lg-text font-bold mb-4">Ethiopia Economic Data</h1>
             <p class="mb-8 text-lg">Live economic indicators and news powered by AI analysis</p>
-            <div class="flex justify-center space-x-4">
+            <div class="flex justify-center space-x-4 flex-wrap gap-2">
                 <button onclick="loadLatestEconomicData()" class="btn-primary">
                     Refresh Data
                 </button>
                 <button onclick="loadFullEconomicData()" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                     View Historical Data
+                </button>
+                <button onclick="triggerDataCollection()" id="trigger-collection-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                    🔄 Collect Fresh Data
                 </button>
             </div>
         </div>
@@ -67,6 +70,9 @@
 
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
+            <!-- Data Collection Status -->
+            <div id="collection-status" class="mb-6"></div>
+            
             <div id="economic-data-container">
                 <div class="flex items-center justify-center p-8">
                     <div class="text-center">
