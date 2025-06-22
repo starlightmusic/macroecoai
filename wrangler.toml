@@ -16,6 +16,7 @@ id = "placeholder-kv-id"
 
 [vars]
 ENVIRONMENT = "production"
+DEBUG = "true"
 
 [env.production.vars]
 NEWS_API_KEY = "your-newsapi-key"
@@ -33,3 +34,4 @@ id = "placeholder-local-kv-id"
 
 [env.local.vars]
 ENVIRONMENT = "local"
+DEBUG = "true"
