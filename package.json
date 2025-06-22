@@ -1,0 +1,30 @@
+{
+  "name": "macroecoai",
+  "version": "1.0.0",
+  "description": "MacroEconomics AI - Economic data visualization for Ethiopia",
+  "scripts": {
+    "dev": "wrangler dev --local --env local",
+    "dev:remote": "wrangler dev --env local",
+    "deploy": "wrangler deploy",
+    "setup:local": "npm run setup:db && npm run setup:kv",
+    "setup:db": "echo 'Run: wrangler d1 create macroecoai-db-local' && echo 'Then update wrangler.toml with the database_id'",
+    "setup:kv": "echo 'Run: wrangler kv:namespace create CACHE --preview' && echo 'Then update wrangler.toml with the id'",
+    "db:init": "wrangler d1 execute macroecoai-db-local --local --file=./schema.sql --env local",
+    "db:reset": "wrangler d1 execute macroecoai-db-local --local --command='DROP TABLE IF EXISTS economic_indicators; DROP TABLE IF EXISTS news_articles; DROP TABLE IF EXISTS countries;' --env local && npm run db:init",
+    "serve": "python3 -m http.server 3000",
+    "logs": "wrangler tail",
+    "test:scheduled": "echo 'Manually trigger scheduled function from Cloudflare dashboard'"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "keywords": [
+    "economics",
+    "cloudflare",
+    "workers",
+    "ethiopia",
+    "data-visualization"
+  ],
+  "author": "MacroAI Team",
+  "license": "MIT"
+}
