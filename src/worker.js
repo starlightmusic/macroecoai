@@ -1,3 +1,9 @@
+function debugLog(env, ...args) {
+  if (env && env.DEBUG === 'true') {
+    console.log(...args);
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -78,9 +84,14 @@ async function collectEconomicData(env) {
 
   for (const indicator of indicators) {
     try {
-      const response = await fetch(
-        `https://api.worldbank.org/v2/country/ETH/indicator/${indicator}?format=json&date=2020:2024&per_page=100`
-      );
+      const apiUrl = `https://api.worldbank.org/v2/country/ETH/indicator/${indicator}?format=json&date=2020:2024&per_page=100`;
+      debugLog(env, 'Fetching economic data:', apiUrl);
+      const response = await fetch(apiUrl);
+      debugLog(env, 'Response status:', response.status);
+      if (env.DEBUG === 'true') {
+        const text = await response.clone().text();
+        debugLog(env, 'Response body:', text);
+      }
       
       if (!response.ok) {
         console.error(`Failed to fetch ${indicator}: ${response.status}`);
@@ -92,8 +103,8 @@ async function collectEconomicData(env) {
       if (data && data.length > 1 && data[1]) {
         for (const entry of data[1]) {
           if (entry.value !== null) {
-            await env.DB.prepare(`
-              INSERT OR REPLACE INTO economic_indicators 
+            const dbResult = await env.DB.prepare(`
+              INSERT OR REPLACE INTO economic_indicators
               (country_code, indicator_code, indicator_name, year, value, date_collected)
               VALUES (?, ?, ?, ?, ?, ?)
             `).bind(
@@ -104,6 +115,7 @@ async function collectEconomicData(env) {
               entry.value,
               new Date().toISOString()
             ).run();
+            debugLog(env, 'DB insert result:', dbResult);
           }
         }
       }
@@ -124,9 +136,14 @@ async function collectEconomicData(env) {
 async function collectNewsData(env) {
   try {
     const query = 'Ethiopia economy OR Ethiopian economy OR Ethiopia GDP OR Ethiopia inflation';
-    const response = await fetch(
-      `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${env.NEWS_API_KEY}`
-    );
+    const apiUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${env.NEWS_API_KEY}`;
+    debugLog(env, 'Fetching news data:', apiUrl);
+    const response = await fetch(apiUrl);
+    debugLog(env, 'News API status:', response.status);
+    if (env.DEBUG === 'true') {
+      const text = await response.clone().text();
+      debugLog(env, 'News API response:', text);
+    }
 
     if (!response.ok) {
       console.error(`News API request failed: ${response.status}`);
@@ -138,8 +155,8 @@ async function collectNewsData(env) {
     if (data.articles) {
       for (const article of data.articles) {
         try {
-          await env.DB.prepare(`
-            INSERT OR REPLACE INTO news_articles 
+          const dbResult = await env.DB.prepare(`
+            INSERT OR REPLACE INTO news_articles
             (title, description, url, source, published_at, date_collected)
             VALUES (?, ?, ?, ?, ?, ?)
           `).bind(
@@ -150,6 +167,7 @@ async function collectNewsData(env) {
             article.publishedAt,
             new Date().toISOString()
           ).run();
+          debugLog(env, 'News DB insert result:', dbResult);
         } catch (error) {
           console.error('Error inserting article:', error);
         }
