@@ -49,6 +49,7 @@ The site will be accessible at your Cloudflare Pages domain (e.g., `https://macr
 macroecoai/
 ├── server.js           # Express.js server
 ├── package.json        # Node.js dependencies and scripts
+├── wrangler.toml       # Cloudflare configuration
 ├── index.html          # Homepage
 ├── subscribe.html      # Subscription page
 ├── article.html        # Demo article

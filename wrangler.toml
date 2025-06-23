@@ -1,0 +1,8 @@
+name = "macroecoai"
+compatibility_date = "2023-12-01"
+
+[build]
+command = "npm run build"
+
+[[pages_build_output_dir]]
+pages_build_output_dir = "."
