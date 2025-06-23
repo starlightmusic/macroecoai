@@ -1,9 +1,11 @@
 {
   "name": "macroecoai",
   "main": "src/index.js",
-  "compatibility_date": "2023-12-01",
+  "compatibility_date": "2024-06-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "bucket": "."
+    "directory": ".",
+    "include": ["*.html", "assets/**/*", "robots.txt", "sitemap.xml"],
+    "exclude": ["node_modules/**/*", "src/**/*", "server.js", "package*.json", "wrangler.jsonc", ".git*"]
   }
 }
