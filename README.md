@@ -26,7 +26,7 @@ npm run local
 Opens on `http://localhost:3000`
 
 ### Static Preview
-You can still open the `index.html` file directly in a browser for static preview since all assets are relative.
+You can still open the `public/index.html` file directly in a browser for static preview since all assets are relative.
 
 ## Deployment to Cloudflare Workers
 
@@ -52,19 +52,20 @@ The site will be accessible at your Cloudflare Workers domain (e.g., `https://ma
 macroecoai/
 ├── src/
 │   └── index.js        # Cloudflare Workers entry point
+├── public/             # Static assets directory
+│   ├── index.html      # Homepage
+│   ├── subscribe.html  # Subscription page
+│   ├── article.html    # Demo article
+│   ├── success.html    # Success page
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   └── js/
+│   │       ├── main.js
+│   │       └── forms.js
+│   ├── robots.txt
+│   └── sitemap.xml
 ├── server.js           # Express.js server (for local dev)
 ├── package.json        # Node.js dependencies and scripts
-├── wrangler.jsonc      # Cloudflare Workers configuration
-├── index.html          # Homepage
-├── subscribe.html      # Subscription page
-├── article.html        # Demo article
-├── success.html        # Success page
-├── assets/
-│   ├── css/
-│   │   └── style.css
-│   └── js/
-│       ├── main.js
-│       └── forms.js
-├── robots.txt
-└── sitemap.xml
+└── wrangler.jsonc      # Cloudflare Workers configuration
 ```
