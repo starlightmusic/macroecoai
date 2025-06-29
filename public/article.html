@@ -60,9 +60,47 @@
     <section class="py-16 text-center bg-slate-50">
         <div class="container mx-auto px-4">
             <p class="mb-6 text-xl font-semibold">Enjoyed the article?</p>
-            <a href="subscribe.html" class="btn-primary mb-4 inline-block">Subscribe for Weekly Insights</a>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+                <a href="subscribe.html" class="btn-primary">Subscribe for Weekly Insights</a>
+                <button id="worldbank-btn" class="btn-secondary" onclick="fetchWorldBankData()">View World Bank Data</button>
+            </div>
             <div>
                 <a href="index.html" class="btn-secondary inline-block">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- World Bank Data Section -->
+    <section id="worldbank-section" class="py-16 bg-white" style="display: none;">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8">Recent World Bank Economic Documents</h2>
+            
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="text-center mb-8" style="display: none;">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-4 text-lg">Loading World Bank data...</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="error-message text-center mb-8" style="display: none;">
+                <p class="text-red-600 text-lg">Failed to load World Bank data. Please try again later.</p>
+            </div>
+            
+            <!-- Data Table -->
+            <div id="data-table-container" class="overflow-x-auto" style="display: none;">
+                <table id="worldbank-table" class="wb-data-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left">Country</th>
+                            <th class="px-4 py-3 text-left">Document Title</th>
+                            <th class="px-4 py-3 text-center">PDF</th>
+                            <th class="px-4 py-3 text-center">Text</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worldbank-data">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
