@@ -66,3 +66,12 @@
     .wb-data-table th,.wb-data-table td{padding:0.5rem !important;}
 }
 @media (min-width:1024px){.hero-lg-text{font-size:3rem;}}
+
+/* Dark mode */
+html.dark body{background-color:#0f172a;color:#e2e8f0;}
+html.dark .bg-white{background-color:#1e293b!important;}
+html.dark .bg-slate-50{background-color:#0f172a!important;}
+html.dark .text-slate-800{color:#e2e8f0!important;}
+html.dark .card{background-color:#1e293b;color:#e2e8f0;}
+html.dark footer{background-color:#1e293b;color:#e2e8f0;}
+html.dark .gradient-bg{background:linear-gradient(90deg,#1e293b,#0d9488);}

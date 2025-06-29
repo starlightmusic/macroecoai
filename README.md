@@ -1,6 +1,6 @@
 # Macroeconomics Newsletter Website
 
-This site provides an AI-powered macroeconomics newsletter with a free beta subscription. The site uses vanilla HTML, Tailwind CSS, and minimal JavaScript with an Express.js server for dynamic deployment.
+This site provides an AI-powered macroeconomics newsletter with a free beta subscription. The site uses vanilla HTML, Tailwind CSS, and minimal JavaScript with an Express.js server for dynamic deployment. It now supports a user-selectable dark mode.
 
 A demo article is available at `article.html` so readers can preview the content before subscribing.
 
