@@ -22,7 +22,7 @@ async function fetchWorldBankData() {
     section.scrollIntoView({ behavior: 'smooth' });
     
     try {
-        const response = await fetch('https://search.worldbank.org/api/v3/wds?format=json&owner=EMFMD&fl=count,txturl&strdate=2024-01-01&rows=100');
+        const response = await fetch('/api/worldbank');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
