@@ -58,6 +58,77 @@ async function handleWorldBankAPI(request) {
   }
 }
 __name(handleWorldBankAPI, "handleWorldBankAPI");
+async function handleWorldBankTextAPI(request) {
+  try {
+    const url = new URL(request.url);
+    const documentUrl = url.searchParams.get("url");
+    console.log("\u{1F50D} WORKERS DEBUG: /api/worldbank/text endpoint called");
+    console.log("\u{1F4E5} Query params:", Object.fromEntries(url.searchParams.entries()));
+    console.log("\u{1F517} URL parameter:", documentUrl);
+    if (!documentUrl) {
+      console.log("\u274C No URL parameter provided");
+      return new Response(JSON.stringify({ error: "URL parameter is required" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    }
+    console.log("\u{1F4E1} Attempting to fetch:", documentUrl);
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate",
+      "Referer": "https://www.worldbank.org/",
+      "Connection": "keep-alive",
+      "Upgrade-Insecure-Requests": "1"
+    };
+    console.log("\u{1F4E4} Using headers:", headers);
+    const response = await fetch(documentUrl, {
+      method: "GET",
+      headers,
+      redirect: "follow"
+      // Follow redirects automatically
+    });
+    console.log("\u{1F4CA} World Bank response status:", response.status);
+    console.log("\u{1F4CA} World Bank response ok:", response.ok);
+    console.log("\u{1F4CA} World Bank response headers:", Object.fromEntries(response.headers.entries()));
+    if (!response.ok) {
+      console.log("\u274C World Bank returned error status:", response.status);
+      const errorBody = await response.text();
+      console.log("\u274C Error response body:", errorBody.substring(0, 500));
+      throw new Error(`Document fetch error: ${response.status}`);
+    }
+    const text = await response.text();
+    console.log("\u2705 Successfully fetched text from World Bank, length:", text.length);
+    console.log("\u{1F4DD} First 200 chars:", text.substring(0, 200));
+    return new Response(text, {
+      headers: {
+        "Content-Type": "text/plain",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    });
+  } catch (error) {
+    console.error("\u274C WORKERS ERROR: Document text fetch error:", error);
+    console.error("\u274C Error name:", error.name);
+    console.error("\u274C Error message:", error.message);
+    return new Response(JSON.stringify({
+      error: "Failed to fetch document text",
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+  }
+}
+__name(handleWorldBankTextAPI, "handleWorldBankTextAPI");
 var src_default = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -73,6 +144,8 @@ var src_default = {
         return env.ASSETS.fetch(new Request(url.origin + "/success.html"));
       case "/api/worldbank":
         return await handleWorldBankAPI(request);
+      case "/api/worldbank/text":
+        return await handleWorldBankTextAPI(request);
       default:
         try {
           return await env.ASSETS.fetch(request);

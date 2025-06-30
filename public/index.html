@@ -74,43 +74,67 @@
         </div>
     </section>
 
+    <!-- World Bank Research Dashboard -->
     <section class="py-16 bg-white">
         <div class="container mx-auto px-4">
-            <h2 class="text-2xl font-semibold text-center mb-8">Sample Articles</h2>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="card" style="background:linear-gradient(135deg,#1e40af,#10b981);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
-                <div class="card" style="background:linear-gradient(135deg,#10b981,#1e40af);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
-                <div class="card" style="background:linear-gradient(135deg,#1e40af,#f59e0b);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
-                <div class="card" style="background:linear-gradient(135deg,#10b981,#f59e0b);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
-                <div class="card" style="background:linear-gradient(135deg,#f59e0b,#1e40af);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
-                <div class="card" style="background:linear-gradient(135deg,#f59e0b,#10b981);color:white;">
-                    <h3 class="font-semibold mb-2">Article Title</h3>
-                    <p class="mb-2">Excerpt from the upcoming post</p>
-                    <span class="inline-block bg-amber-500 text-white px-2 py-1 rounded">Coming Soon</span>
-                </div>
+            <h2 class="text-3xl font-bold text-center mb-8">Latest Economic Research</h2>
+            
+            <!-- Loading Spinner -->
+            <div id="loading-spinner" class="text-center mb-8">
+                <div class="loading-spinner mx-auto"></div>
+                <p class="mt-4 text-lg">Loading World Bank data...</p>
+            </div>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="error-message text-center mb-8" style="display: none;">
+                <p class="text-red-600 text-lg">Failed to load World Bank data. Please try again later.</p>
+            </div>
+            
+            <!-- Data Table -->
+            <div id="data-table-container" class="overflow-x-auto" style="display: none;">
+                <table id="worldbank-table" class="wb-data-table w-full">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left">Country</th>
+                            <th class="px-4 py-3 text-left">Document Title</th>
+                            <th class="px-4 py-3 text-center">PDF</th>
+                            <th class="px-4 py-3 text-center">Text</th>
+                            <th class="px-4 py-3 text-center">Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody id="worldbank-data">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </section>
+
+    <!-- Document Preview Modal -->
+    <div id="document-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title" class="text-xl font-semibold">Document Preview</h3>
+                <button id="close-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-loading" class="text-center py-8">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p>Loading document content...</p>
+                </div>
+                <div id="modal-content" class="document-text" style="display: none;">
+                    <!-- Document text will be loaded here -->
+                </div>
+                <div id="modal-error" class="error-message" style="display: none;">
+                    <p class="text-red-600">Failed to load document content.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="text" id="user-question" class="form-input w-full" placeholder="Ask a question about this document..." disabled>
+            </div>
+        </div>
+    </div>
+
     <section class="py-16 text-center bg-slate-50">
         <div class="container mx-auto px-4">
             <h2 class="text-2xl font-semibold mb-4">Want a preview of our content?</h2>
