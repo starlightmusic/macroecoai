@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-69ewtS/checked-fetch.js
+// .wrangler/tmp/bundle-Y18NU9/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -166,7 +166,7 @@ async function handleWorldBankSummaryAPI(request, env) {
     }
     const documentText = await docResponse.text();
     console.log("\u2705 Document fetched, length:", documentText.length);
-    console.log("\u{1F916} Generating AI summary with Gemini...");
+    console.log("\u{1F916} Generating AI summary with Gemini 1.5 Flash...");
     const geminiApiKey = env.GEMINI_API_KEY;
     if (!geminiApiKey) {
       throw new Error("GEMINI_API_KEY environment variable not set");
@@ -174,7 +174,7 @@ async function handleWorldBankSummaryAPI(request, env) {
     const prompt = `Please summarize this World Bank economic document in exactly 250 words. Focus on the key economic findings, indicators, policy implications, and outlook. Structure the summary with clear paragraphs for readability. Here is the document text:
 
 ${documentText}`;
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -295,7 +295,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-69ewtS/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-Y18NU9/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -327,7 +327,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-69ewtS/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-Y18NU9/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

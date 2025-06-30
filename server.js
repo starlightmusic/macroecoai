@@ -153,8 +153,8 @@ app.get('/api/worldbank/summary', async (req, res) => {
         console.log('✅ Document fetched, length:', documentText.length);
         
         // Generate AI summary using Gemini
-        console.log('🤖 Generating AI summary with Gemini...');
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        console.log('🤖 Generating AI summary with Gemini 1.5 Flash...');
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
         const prompt = `Please summarize this World Bank economic document in exactly 250 words. Focus on the key economic findings, indicators, policy implications, and outlook. Structure the summary with clear paragraphs for readability. Here is the document text:
 

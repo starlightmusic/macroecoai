@@ -161,7 +161,7 @@ async function handleWorldBankSummaryAPI(request, env) {
     console.log('✅ Document fetched, length:', documentText.length);
     
     // Generate AI summary using Gemini REST API
-    console.log('🤖 Generating AI summary with Gemini...');
+    console.log('🤖 Generating AI summary with Gemini 1.5 Flash...');
     const geminiApiKey = env.GEMINI_API_KEY;
     
     if (!geminiApiKey) {
@@ -172,7 +172,7 @@ async function handleWorldBankSummaryAPI(request, env) {
 
 ${documentText}`;
     
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

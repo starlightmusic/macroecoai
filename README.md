@@ -7,16 +7,27 @@ A demo article is available at `article.html` so readers can preview the content
 ## Development
 
 ### Environment Setup
-1. Create a `.env` file in the root directory:
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-2. Get your Gemini API key:
+1. Get your Gemini API key:
    - Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
    - Sign in with your Google account
    - Click "Create API Key"
-   - Copy the generated key to your `.env` file
+   - Copy the generated key
+
+2. Create environment files:
+   - **For Express.js local development**: Create `.env` file:
+     ```bash
+     GEMINI_API_KEY=your_gemini_api_key_here
+     ```
+   - **For Cloudflare Workers local development**: Create `.dev.vars` file:
+     ```bash
+     GEMINI_API_KEY=your_gemini_api_key_here
+     ```
+
+3. **For Cloudflare Workers production deployment**:
+   ```bash
+   wrangler secret put GEMINI_API_KEY
+   ```
+   (Enter your Gemini API key when prompted)
 
 ### Local Development with Cloudflare Workers
 1. Install dependencies:
@@ -24,11 +35,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 npm install
 ```
 
-2. Set up environment variables for Cloudflare Workers:
-```bash
-wrangler secret put GEMINI_API_KEY
-```
-(Enter your Gemini API key when prompted)
+2. Ensure you have a `.dev.vars` file (see Environment Setup above)
 
 3. Start the Cloudflare Workers development server:
 ```bash
@@ -36,6 +43,8 @@ npm run dev
 ```
 
 4. Open your browser to `http://localhost:8787`
+
+**Note**: The `.dev.vars` file is used for local development only. Production deployments use secrets set via `wrangler secret put`.
 
 ### Local Development with Express.js (Alternative)
 ```bash
