@@ -1,8 +1,13 @@
 const express = require('express');
 const path = require('path');
+require('dotenv').config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -100,6 +105,85 @@ app.get('/api/worldbank/text', async (req, res) => {
         console.error('❌ Error message:', error.message);
         res.status(500).json({ 
             error: 'Failed to fetch document text',
+            message: error.message 
+        });
+    }
+});
+
+// API endpoint for World Bank document AI summary
+app.get('/api/worldbank/summary', async (req, res) => {
+    try {
+        const { url } = req.query;
+        
+        console.log('🤖 EXPRESS DEBUG: /api/worldbank/summary endpoint called');
+        console.log('📥 Query params:', req.query);
+        console.log('🔗 URL parameter:', url);
+        
+        if (!url) {
+            console.log('❌ No URL parameter provided');
+            return res.status(400).json({ error: 'URL parameter is required' });
+        }
+        
+        console.log('📡 Fetching document text from:', url);
+        
+        // First fetch the document text
+        const fetch = (await import('node-fetch')).default;
+        const headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Referer': 'https://www.worldbank.org/',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1'
+        };
+        
+        const docResponse = await fetch(url, {
+            method: 'GET',
+            headers: headers,
+            redirect: 'follow',
+            follow: 20
+        });
+        
+        if (!docResponse.ok) {
+            throw new Error(`Document fetch error: ${docResponse.status}`);
+        }
+        
+        const documentText = await docResponse.text();
+        console.log('✅ Document fetched, length:', documentText.length);
+        
+        // Generate AI summary using Gemini
+        console.log('🤖 Generating AI summary with Gemini...');
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        
+        const prompt = `Please summarize this World Bank economic document in exactly 250 words. Focus on the key economic findings, indicators, policy implications, and outlook. Structure the summary with clear paragraphs for readability. Here is the document text:
+
+${documentText}`;
+        
+        const result = await model.generateContent(prompt);
+        const summary = result.response.text();
+        
+        console.log('✅ AI summary generated, length:', summary.length);
+        console.log('📝 Summary preview:', summary.substring(0, 100) + '...');
+        
+        // Set CORS headers
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+        res.header('Content-Type', 'application/json');
+        
+        res.json({ 
+            summary: summary,
+            originalLength: documentText.length,
+            summaryLength: summary.length
+        });
+        
+    } catch (error) {
+        console.error('❌ EXPRESS ERROR: AI summary generation error:', error);
+        console.error('❌ Error name:', error.name);
+        console.error('❌ Error message:', error.message);
+        res.status(500).json({ 
+            error: 'Failed to generate AI summary',
             message: error.message 
         });
     }

@@ -6,18 +6,36 @@ A demo article is available at `article.html` so readers can preview the content
 
 ## Development
 
+### Environment Setup
+1. Create a `.env` file in the root directory:
+```bash
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+2. Get your Gemini API key:
+   - Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Sign in with your Google account
+   - Click "Create API Key"
+   - Copy the generated key to your `.env` file
+
 ### Local Development with Cloudflare Workers
 1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Start the Cloudflare Workers development server:
+2. Set up environment variables for Cloudflare Workers:
+```bash
+wrangler secret put GEMINI_API_KEY
+```
+(Enter your Gemini API key when prompted)
+
+3. Start the Cloudflare Workers development server:
 ```bash
 npm run dev
 ```
 
-3. Open your browser to `http://localhost:8787`
+4. Open your browser to `http://localhost:8787`
 
 ### Local Development with Express.js (Alternative)
 ```bash

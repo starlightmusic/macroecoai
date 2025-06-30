@@ -11,10 +11,17 @@
     "deploy": "wrangler deploy",
     "local": "node server.js"
   },
-  "keywords": ["macroeconomics", "ai", "newsletter", "economics"],
+  "keywords": [
+    "macroeconomics",
+    "ai",
+    "newsletter",
+    "economics"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.0.0",
     "express": "^4.18.2",
     "path": "^0.12.7"
   },

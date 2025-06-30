@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-IJtGYt/checked-fetch.js
+// .wrangler/tmp/bundle-69ewtS/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -129,6 +129,102 @@ async function handleWorldBankTextAPI(request) {
   }
 }
 __name(handleWorldBankTextAPI, "handleWorldBankTextAPI");
+async function handleWorldBankSummaryAPI(request, env) {
+  try {
+    const url = new URL(request.url);
+    const documentUrl = url.searchParams.get("url");
+    console.log("\u{1F916} WORKERS DEBUG: /api/worldbank/summary endpoint called");
+    console.log("\u{1F4E5} Query params:", Object.fromEntries(url.searchParams.entries()));
+    console.log("\u{1F517} URL parameter:", documentUrl);
+    if (!documentUrl) {
+      console.log("\u274C No URL parameter provided");
+      return new Response(JSON.stringify({ error: "URL parameter is required" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    }
+    console.log("\u{1F4E1} Fetching document text from:", documentUrl);
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "text/plain,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.5",
+      "Accept-Encoding": "gzip, deflate",
+      "Referer": "https://www.worldbank.org/",
+      "Connection": "keep-alive",
+      "Upgrade-Insecure-Requests": "1"
+    };
+    const docResponse = await fetch(documentUrl, {
+      method: "GET",
+      headers,
+      redirect: "follow"
+    });
+    if (!docResponse.ok) {
+      throw new Error(`Document fetch error: ${docResponse.status}`);
+    }
+    const documentText = await docResponse.text();
+    console.log("\u2705 Document fetched, length:", documentText.length);
+    console.log("\u{1F916} Generating AI summary with Gemini...");
+    const geminiApiKey = env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      throw new Error("GEMINI_API_KEY environment variable not set");
+    }
+    const prompt = `Please summarize this World Bank economic document in exactly 250 words. Focus on the key economic findings, indicators, policy implications, and outlook. Structure the summary with clear paragraphs for readability. Here is the document text:
+
+${documentText}`;
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: prompt
+          }]
+        }]
+      })
+    });
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text();
+      console.log("\u274C Gemini API error:", geminiResponse.status, errorText);
+      throw new Error(`Gemini API error: ${geminiResponse.status}`);
+    }
+    const geminiResult = await geminiResponse.json();
+    const summary = geminiResult.candidates[0].content.parts[0].text;
+    console.log("\u2705 AI summary generated, length:", summary.length);
+    console.log("\u{1F4DD} Summary preview:", summary.substring(0, 100) + "...");
+    return new Response(JSON.stringify({
+      summary,
+      originalLength: documentText.length,
+      summaryLength: summary.length
+    }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET",
+        "Access-Control-Allow-Headers": "Content-Type"
+      }
+    });
+  } catch (error) {
+    console.error("\u274C WORKERS ERROR: AI summary generation error:", error);
+    console.error("\u274C Error name:", error.name);
+    console.error("\u274C Error message:", error.message);
+    return new Response(JSON.stringify({
+      error: "Failed to generate AI summary",
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+  }
+}
+__name(handleWorldBankSummaryAPI, "handleWorldBankSummaryAPI");
 var src_default = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -146,6 +242,8 @@ var src_default = {
         return await handleWorldBankAPI(request);
       case "/api/worldbank/text":
         return await handleWorldBankTextAPI(request);
+      case "/api/worldbank/summary":
+        return await handleWorldBankSummaryAPI(request, env);
       default:
         try {
           return await env.ASSETS.fetch(request);
@@ -197,7 +295,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-IJtGYt/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-69ewtS/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -229,7 +327,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-IJtGYt/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-69ewtS/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

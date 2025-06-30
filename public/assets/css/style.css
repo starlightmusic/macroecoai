@@ -126,6 +126,60 @@
     overflow-y:auto;
 }
 
+/* AI Loading Animation */
+.ai-loading-animation{
+    position:relative;
+    width:60px;
+    height:60px;
+}
+
+.brain-icon{
+    font-size:2rem;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    z-index:2;
+    animation:pulse 2s ease-in-out infinite;
+}
+
+.ai-spinner{
+    position:absolute;
+    top:0;
+    left:0;
+    width:60px;
+    height:60px;
+    border:3px solid #e2e8f0;
+    border-top:3px solid #3b82f6;
+    border-radius:50%;
+    animation:ai-spin 1.5s linear infinite;
+}
+
+@keyframes ai-spin{
+    0%{transform:rotate(0deg);}
+    100%{transform:rotate(360deg);}
+}
+
+@keyframes pulse{
+    0%, 100%{transform:translate(-50%, -50%) scale(1);}
+    50%{transform:translate(-50%, -50%) scale(1.1);}
+}
+
+/* AI Summary Styling */
+.ai-summary{
+    font-size:0.9rem;
+    line-height:1.7;
+}
+
+.ai-badge{
+    text-align:center;
+}
+
+.summary-text p{
+    margin-bottom:1rem;
+    text-align:justify;
+}
+
 /* Responsive utilities */
 @media (max-width:768px){
     .card{margin-bottom:1rem;}

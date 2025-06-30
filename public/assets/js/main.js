@@ -89,8 +89,8 @@ async function showDocumentPreview(txtUrl, title) {
     modalError.style.display = 'none';
     
     try {
-        const apiUrl = `/api/worldbank/text?url=${encodeURIComponent(txtUrl)}`;
-        console.log('📡 Making fetch request to:', apiUrl);
+        const apiUrl = `/api/worldbank/summary?url=${encodeURIComponent(txtUrl)}`;
+        console.log('🤖 Making AI summary request to:', apiUrl);
         
         const response = await fetch(apiUrl);
         
@@ -104,13 +104,26 @@ async function showDocumentPreview(txtUrl, title) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
-        const text = await response.text();
-        console.log('✅ Successfully fetched text, length:', text.length);
-        console.log('📝 First 200 chars:', text.substring(0, 200));
+        const result = await response.json();
+        console.log('✅ Successfully generated AI summary');
+        console.log('📝 Summary length:', result.summaryLength);
+        console.log('📄 Original length:', result.originalLength);
         
-        // Show first 1000 characters of the document
-        const preview = text.length > 1000 ? text.substring(0, 1000) + '...' : text;
-        modalContent.innerHTML = `<p class="whitespace-pre-wrap">${preview}</p>`;
+        // Display the AI-generated summary
+        modalContent.innerHTML = `
+            <div class="ai-summary">
+                <div class="ai-badge mb-4">
+                    <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
+                        🤖 AI Summary (${result.summaryLength} words from ${result.originalLength} chars)
+                    </span>
+                </div>
+                <div class="summary-text">
+                    ${result.summary.split('\n').map(paragraph => 
+                        paragraph.trim() ? `<p class="mb-4">${paragraph.trim()}</p>` : ''
+                    ).join('')}
+                </div>
+            </div>
+        `;
         
         modalLoading.style.display = 'none';
         modalContent.style.display = 'block';
