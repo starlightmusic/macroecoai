@@ -5,5 +5,12 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "public"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "macroecoai-db",
+      "database_id": "df2f7b87-ec6b-4107-bd18-641d05ace1a1"
+    }
+  ]
 }

@@ -1,33 +1,108 @@
-# Macroeconomics Newsletter Website
+# MacroAI Newsletter Website
 
-This site provides an AI-powered macroeconomics newsletter with a free beta subscription. The site uses vanilla HTML, Tailwind CSS, and minimal JavaScript with an Express.js server for dynamic deployment. It now supports a user-selectable dark mode.
+This site provides an AI-powered macroeconomics newsletter with a free beta subscription and integrated user account management. The application features:
 
-A demo article is available at `article.html` so readers can preview the content before subscribing.
+- **Dual Deployment**: Can run on both Express.js (local development) and Cloudflare Workers (production)
+- **User Authentication**: Email-based registration and login system
+- **World Bank Integration**: Live economic research dashboard with document filtering
+- **AI-Powered Summaries**: Gemini AI generates summaries of World Bank documents
+- **Responsive Design**: Mobile-first design with Tailwind CSS
+
+Key features include user registration/login, World Bank document filtering, AI document summaries, and a modern responsive interface.
 
 ## Development
 
 ### Environment Setup
-1. Get your Gemini API key:
-   - Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - Sign in with your Google account
-   - Click "Create API Key"
-   - Copy the generated key
 
-2. Create environment files:
-   - **For Express.js local development**: Create `.env` file:
-     ```bash
-     GEMINI_API_KEY=your_gemini_api_key_here
-     ```
-   - **For Cloudflare Workers local development**: Create `.dev.vars` file:
-     ```bash
-     GEMINI_API_KEY=your_gemini_api_key_here
-     ```
+#### 1. Get your Gemini API key:
+- Go to [Google AI Studio](https://aistudio.google.com/app/apikey)
+- Sign in with your Google account
+- Click "Create API Key"
+- Copy the generated key
 
-3. **For Cloudflare Workers production deployment**:
-   ```bash
-   wrangler secret put GEMINI_API_KEY
-   ```
-   (Enter your Gemini API key when prompted)
+#### 2. Create environment files:
+- **For Express.js local development**: Create `.env` file:
+  ```bash
+  GEMINI_API_KEY=your_gemini_api_key_here
+  ```
+- **For Cloudflare Workers local development**: Create `.dev.vars` file:
+  ```bash
+  GEMINI_API_KEY=your_gemini_api_key_here
+  ```
+
+#### 3. For Cloudflare Workers production deployment:
+```bash
+wrangler secret put GEMINI_API_KEY
+```
+(Enter your Gemini API key when prompted)
+
+#### 4. Install Dependencies:
+```bash
+npm install
+```
+
+If you don't have the required packages for local development, install them:
+```bash
+npm install cookie-parser
+```
+
+## Database Setup
+
+### For Cloudflare Workers (Production)
+
+The authentication system uses Cloudflare D1 database for production deployments.
+
+#### 1. Create the D1 Database:
+```bash
+wrangler d1 create macroecoai-db
+```
+
+#### 2. Update wrangler.jsonc:
+Copy the `database_id` from the command output and update `wrangler.jsonc`:
+```json
+{
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "macroecoai-db",
+      "database_id": "your-database-id-here"
+    }
+  ]
+}
+```
+
+#### 3. Run Database Schema:
+```bash
+wrangler d1 execute macroecoai-db --file=schema.sql
+```
+
+#### 4. Verify Database Setup:
+```bash
+wrangler d1 execute macroecoai-db --command="SELECT name FROM sqlite_master WHERE type='table';"
+```
+You should see `users` and `sessions` tables listed.
+
+#### 5. (Optional) Check Database Contents:
+```bash
+# View all users
+wrangler d1 execute macroecoai-db --command="SELECT * FROM users;"
+
+# View active sessions
+wrangler d1 execute macroecoai-db --command="SELECT * FROM sessions WHERE expires_at > datetime('now');"
+```
+
+### For Local Development
+
+Local development uses **in-memory storage** - no database setup required!
+
+- User data is stored in JavaScript `Map` objects
+- Data persists only while the Express.js server is running
+- Perfect for testing authentication features without database complexity
+- When you restart the server, all user data is reset
+
+This makes local development simple and fast for testing the authentication system.
+
+## Local Development
 
 ### Local Development with Cloudflare Workers
 1. Install dependencies:
@@ -57,8 +132,21 @@ You can still open the `public/index.html` file directly in a browser for static
 
 ## Deployment to Cloudflare Workers
 
+### Prerequisites
+- Complete the Database Setup (see above) before deploying
+- Ensure your `wrangler.jsonc` has the correct `database_id`
+- Set up your Gemini API key secret
+
+### Deployment Steps
+
+#### Option 1: Command Line Deployment
+```bash
+wrangler deploy
+```
+
+#### Option 2: GitHub Integration
 1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. Navigate to **Workers & Pages** → **Create** → **Workers**
+2. Navigate to **Workers & Pages** → **Create** → **Workers**  
 3. Click **Connect to Git** and select your GitHub repository
 4. Configure deployment settings:
    - **Project name**: `macroecoai`
@@ -67,32 +155,105 @@ You can still open the `public/index.html` file directly in a browser for static
    - **Root directory**: `.` (root directory)
 5. Click **Save and Deploy**
 
-The site will be accessible at your Cloudflare Workers domain (e.g., `https://macroecoai.your-subdomain.workers.dev`).
+### Post-Deployment Verification
 
-### Post-Deployment
-- Forms submit to Formspree endpoints and redirect to `success.html`
-- All static assets are served through the Cloudflare Workers runtime
-- Dynamic functionality can be easily added to the Worker script at `src/index.js`
+1. **Test Authentication**:
+   - Visit your deployed site
+   - Try registering a new account
+   - Test login/logout functionality
+
+2. **Check Database**:
+   ```bash
+   wrangler d1 execute macroecoai-db --command="SELECT COUNT(*) as user_count FROM users;"
+   ```
+
+3. **Monitor Logs**:
+   ```bash
+   wrangler tail
+   ```
+
+The site will be accessible at your Cloudflare Workers domain (e.g., `https://macroecoai.your-subdomain.workers.dev`).
 
 ## Project Structure
 ```
 macroecoai/
 ├── src/
-│   └── index.js        # Cloudflare Workers entry point
+│   └── index.js        # Cloudflare Workers entry point with auth endpoints
 ├── public/             # Static assets directory
-│   ├── index.html      # Homepage
+│   ├── index.html      # Homepage with authentication UI
 │   ├── subscribe.html  # Subscription page
 │   ├── article.html    # Demo article
 │   ├── success.html    # Success page
 │   ├── assets/
 │   │   ├── css/
-│   │   │   └── style.css
+│   │   │   └── style.css  # Custom styles + auth modal styling
 │   │   └── js/
-│   │       ├── main.js
-│   │       └── forms.js
+│   │       ├── auth.js    # Authentication state management
+│   │       ├── main.js    # Core functionality + World Bank filtering
+│   │       └── forms.js   # Form validation
 │   ├── robots.txt
 │   └── sitemap.xml
-├── server.js           # Express.js server (for local dev)
+├── server.js           # Express.js server with in-memory auth
+├── schema.sql          # Database schema for users and sessions
 ├── package.json        # Node.js dependencies and scripts
-└── wrangler.jsonc      # Cloudflare Workers configuration
+├── wrangler.jsonc      # Cloudflare Workers config with D1 binding
+└── README.md          # This file
 ```
+
+## Features
+
+### Authentication System
+- **Email-based registration**: Users sign up with name and email
+- **Simple login**: Login with just email address (no password required initially)
+- **Session management**: 7-day persistent sessions with automatic validation
+- **Responsive UI**: Authentication works on desktop and mobile
+- **Real-time updates**: UI dynamically updates based on login state
+
+### World Bank Integration
+- **Live data**: Automatically fetches latest economic research documents
+- **Document filtering**: Toggle filter for "Macro Poverty Outlook" reports
+- **AI summaries**: Generate document summaries using Gemini AI
+- **Document preview**: View document content in modal with user input field
+
+### Technical Features
+- **Dual deployment**: Works with both Express.js and Cloudflare Workers
+- **Database flexibility**: D1 for production, in-memory for local development
+- **Mobile responsive**: Mobile-first design with Tailwind CSS
+- **Error handling**: Comprehensive validation and user-friendly error messages
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - User registration (name + email)
+- `POST /api/auth/login` - User login (email only)
+- `POST /api/auth/logout` - User logout and session termination
+- `GET /api/auth/me` - Get current authenticated user info
+
+### World Bank Integration
+- `GET /api/worldbank` - Fetch World Bank documents (CORS proxy)
+- `GET /api/worldbank/text?url=<url>` - Fetch document text content
+- `GET /api/worldbank/summary?url=<url>` - Generate AI summary with Gemini
+
+## Troubleshooting
+
+### Database Issues
+```bash
+# Check if database exists
+wrangler d1 list
+
+# Verify tables exist
+wrangler d1 execute macroecoai-db --command="SELECT name FROM sqlite_master WHERE type='table';"
+
+# Check database schema
+wrangler d1 execute macroecoai-db --command=".schema"
+```
+
+### Authentication Issues
+- **Local development**: Check server logs for in-memory storage state
+- **Production**: Verify D1 database has correct tables and data
+- **Sessions**: Check browser localStorage for `session_token`
+
+### Common Setup Issues
+1. **Missing API key**: Ensure `GEMINI_API_KEY` is set in `.env`/`.dev.vars`
+2. **Database not found**: Run `wrangler d1 create macroecoai-db` and update `wrangler.jsonc`
+3. **Cookie-parser missing**: Run `npm install cookie-parser` for local development

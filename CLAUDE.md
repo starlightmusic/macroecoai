@@ -25,14 +25,17 @@ This is a dual-deployment web application that serves as an AI-powered macroecon
 - **World Bank Integration**: Server-side API proxy for fetching economic documents and text content
 
 ### Key Files Structure
-- `src/index.js` - Cloudflare Workers fetch handler with route management
-- `server.js` - Express.js server for local development
-- `public/index.html` - Homepage with newsletter signup
+- `src/index.js` - Cloudflare Workers fetch handler with route management and authentication endpoints
+- `server.js` - Express.js server for local development with in-memory user storage
+- `public/index.html` - Homepage with newsletter signup and account management UI
 - `public/subscribe.html` - Dedicated subscription page
 - `public/article.html` - Demo article for content preview
-- `public/assets/js/main.js` - Mobile menu, smooth scrolling, loading states
+- `public/assets/js/main.js` - Mobile menu, smooth scrolling, loading states, World Bank table filtering
+- `public/assets/js/auth.js` - Authentication state management and API calls
 - `public/assets/js/forms.js` - Form validation and submission handling
-- `public/assets/css/style.css` - Custom CSS components and utilities
+- `public/assets/css/style.css` - Custom CSS components, utilities, and authentication styling
+- `wrangler.jsonc` - Cloudflare Workers configuration with D1 database binding
+- `schema.sql` - Database schema for users and sessions tables
 
 ### Routing
 Both deployment targets serve static files from `public/` directory:
@@ -42,8 +45,17 @@ Both deployment targets serve static files from `public/` directory:
 - `/success` → `success.html` (Success confirmation)
 
 ### API Endpoints
+
+#### World Bank Integration
 - `/api/worldbank` - Proxy for World Bank document search API (CORS fix)
 - `/api/worldbank/text?url=<txturl>` - Proxy for fetching document text content
+- `/api/worldbank/summary?url=<txturl>` - Generate AI summary of World Bank documents using Gemini
+
+#### User Authentication
+- `POST /api/auth/register` - User registration (name + email)
+- `POST /api/auth/login` - User login (email only)
+- `POST /api/auth/logout` - User logout and session termination
+- `GET /api/auth/me` - Get current authenticated user info
 
 ### Form Integration
 Forms use Formspree for submission handling and redirect to `/success` on completion. Client-side validation is handled in `assets/js/forms.js`.
@@ -65,7 +77,44 @@ Forms use Formspree for submission handling and redirect to `/success` on comple
 - SEO optimization with `robots.txt` and `sitemap.xml`
 - Open Graph properties for social sharing
 
-### Planned Features
-- **Document Preview Modal**: Click Preview button to view document text in hover card
+### User Account Management System
+
+#### Authentication Flow
+- **Registration**: Users sign up with name and email (no password required initially)
+- **Login**: Email-only authentication for simplicity
+- **Session Management**: JWT-like session tokens with 7-day expiration
+- **Persistent Login**: Sessions persist across browser restarts using localStorage
+
+#### Database Architecture
+- **Production**: Cloudflare D1 SQL database with users and sessions tables
+- **Local Development**: In-memory storage using JavaScript Maps
+- **Session Security**: HttpOnly cookies + localStorage for token persistence
+
+#### UI Components
+- **Header Integration**: Dynamic authentication state in desktop and mobile navigation
+- **Modal System**: Responsive login/registration modals with form validation
+- **Welcome Messages**: Success notifications for login and registration
+- **State Management**: Real-time UI updates based on authentication status
+
+#### API Integration
+- **Dual Environment**: Same authentication endpoints work in both Express.js and Cloudflare Workers
+- **Error Handling**: Comprehensive validation and user-friendly error messages
+- **Session Validation**: Automatic session checking and token refresh
+
+### World Bank Research Features
+- **Document Filtering**: Toggle filter for "Macro Poverty Outlook" documents with country/date format
+- **Table Management**: Dynamic filtering with document count display
+- **Document Preview Modal**: Click Preview button to view document text with AI-generated summaries
 - **User Input Field**: Text box in preview modal for future AI question/answer functionality
 - **Auto-loading Dashboard**: Homepage automatically displays latest World Bank economic research
+
+### Setup Instructions
+
+#### Database Setup (Production)
+1. Create Cloudflare D1 database: `wrangler d1 create macroecoai-db`
+2. Update `database_id` in `wrangler.jsonc`
+3. Run schema: `wrangler d1 execute macroecoai-db --file=schema.sql`
+
+#### Local Development
+- User data stored in memory (resets on server restart)
+- No database setup required for testing authentication

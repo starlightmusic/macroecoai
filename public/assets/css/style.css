@@ -20,6 +20,66 @@ input[type="checkbox"]:checked + div .dot {
     transform: translateX(100%);
 }
 
+/* Authentication Modal Animations */
+.modal-enter {
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-exit {
+    animation: modalFadeOut 0.3s ease-in;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes modalFadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+}
+
+/* Authentication Button States */
+#login-submit:disabled,
+#register-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Success Notification */
+.auth-notification {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Mobile Auth Menu Transitions */
+#mobile-auth-unauthenticated,
+#mobile-auth-authenticated {
+    transition: all 0.2s ease-in-out;
+}
+
 /* World Bank Data Components */
 .loading-spinner{
     width:40px;

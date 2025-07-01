@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-aYcGAQ/checked-fetch.js
+// .wrangler/tmp/bundle-qTFutO/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -28,6 +28,231 @@ globalThis.fetch = new Proxy(globalThis.fetch, {
 });
 
 // src/index.js
+function generateSessionToken() {
+  return crypto.randomUUID();
+}
+__name(generateSessionToken, "generateSessionToken");
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+__name(isValidEmail, "isValidEmail");
+async function getSessionUser(request, env) {
+  const sessionToken = request.headers.get("Authorization")?.replace("Bearer ", "") || getCookie(request, "session_token");
+  if (!sessionToken) return null;
+  try {
+    const result = await env.DB.prepare(`
+      SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.subscription_status
+      FROM users u 
+      JOIN sessions s ON u.id = s.user_id 
+      WHERE s.token = ? AND s.expires_at > datetime('now')
+    `).bind(sessionToken).first();
+    return result || null;
+  } catch (error) {
+    console.error("Session validation error:", error);
+    return null;
+  }
+}
+__name(getSessionUser, "getSessionUser");
+function getCookie(request, name) {
+  const cookieHeader = request.headers.get("Cookie");
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  const cookie = cookies.find((c) => c.startsWith(`${name}=`));
+  return cookie ? cookie.split("=")[1] : null;
+}
+__name(getCookie, "getCookie");
+function setCookie(name, value, maxAge = 7 * 24 * 60 * 60) {
+  return `${name}=${value}; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Strict; Path=/`;
+}
+__name(setCookie, "setCookie");
+async function handleAuthRegister(request, env) {
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+  try {
+    const { name, email } = await request.json();
+    if (!name || !email) {
+      return new Response(JSON.stringify({ error: "Name and email are required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    if (!isValidEmail(email)) {
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    const existingUser = await env.DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
+    if (existingUser) {
+      return new Response(JSON.stringify({ error: "User already exists with this email" }), {
+        status: 409,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    const result = await env.DB.prepare(`
+      INSERT INTO users (email, name, created_at) 
+      VALUES (?, ?, datetime('now'))
+    `).bind(email, name).run();
+    const userId = result.meta.last_row_id;
+    const sessionToken = generateSessionToken();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1e3);
+    await env.DB.prepare(`
+      INSERT INTO sessions (token, user_id, expires_at) 
+      VALUES (?, ?, ?)
+    `).bind(sessionToken, userId, expiresAt.toISOString()).run();
+    const user = {
+      id: userId,
+      email,
+      name,
+      subscription_status: "none"
+    };
+    return new Response(JSON.stringify({
+      success: true,
+      user,
+      session_token: sessionToken
+    }), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Set-Cookie": setCookie("session_token", sessionToken)
+      }
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return new Response(JSON.stringify({ error: "Registration failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
+__name(handleAuthRegister, "handleAuthRegister");
+async function handleAuthLogin(request, env) {
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+  try {
+    const { email } = await request.json();
+    if (!email) {
+      return new Response(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    if (!isValidEmail(email)) {
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    const user = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "User not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    await env.DB.prepare(`
+      UPDATE users SET last_login = datetime('now') WHERE id = ?
+    `).bind(user.id).run();
+    const sessionToken = generateSessionToken();
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1e3);
+    await env.DB.prepare(`
+      INSERT INTO sessions (token, user_id, expires_at) 
+      VALUES (?, ?, ?)
+    `).bind(sessionToken, user.id, expiresAt.toISOString()).run();
+    return new Response(JSON.stringify({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        subscription_status: user.subscription_status || "none"
+      },
+      session_token: sessionToken
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Set-Cookie": setCookie("session_token", sessionToken)
+      }
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    return new Response(JSON.stringify({ error: "Login failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
+__name(handleAuthLogin, "handleAuthLogin");
+async function handleAuthLogout(request, env) {
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+  try {
+    const sessionToken = request.headers.get("Authorization")?.replace("Bearer ", "") || getCookie(request, "session_token");
+    if (sessionToken) {
+      await env.DB.prepare("DELETE FROM sessions WHERE token = ?").bind(sessionToken).run();
+    }
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Set-Cookie": setCookie("session_token", "", 0)
+        // Clear cookie
+      }
+    });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return new Response(JSON.stringify({ error: "Logout failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
+__name(handleAuthLogout, "handleAuthLogout");
+async function handleAuthMe(request, env) {
+  if (request.method !== "GET") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+  try {
+    const user = await getSessionUser(request, env);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    return new Response(JSON.stringify({ user }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  } catch (error) {
+    console.error("Auth me error:", error);
+    return new Response(JSON.stringify({ error: "Authentication check failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
+__name(handleAuthMe, "handleAuthMe");
 async function handleWorldBankAPI(request) {
   try {
     const response = await fetch("https://search.worldbank.org/api/v3/wds?format=json&owner=EMFMD&fl=count,txturl&strdate=2024-01-01&rows=100");
@@ -244,6 +469,14 @@ var src_default = {
         return await handleWorldBankTextAPI(request);
       case "/api/worldbank/summary":
         return await handleWorldBankSummaryAPI(request, env);
+      case "/api/auth/register":
+        return await handleAuthRegister(request, env);
+      case "/api/auth/login":
+        return await handleAuthLogin(request, env);
+      case "/api/auth/logout":
+        return await handleAuthLogout(request, env);
+      case "/api/auth/me":
+        return await handleAuthMe(request, env);
       default:
         try {
           return await env.ASSETS.fetch(request);
@@ -295,7 +528,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-aYcGAQ/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-qTFutO/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -327,7 +560,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-aYcGAQ/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-qTFutO/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

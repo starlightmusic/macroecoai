@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -9,8 +10,194 @@ const PORT = process.env.PORT || 3000;
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Serve static files from the public directory
+// Middleware
+app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// In-memory storage for local development (replace with real database in production)
+const users = new Map();
+const sessions = new Map();
+
+// Helper functions for authentication
+function generateSessionToken() {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function getSessionUser(req) {
+    const sessionToken = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.session_token;
+    if (!sessionToken) return null;
+    
+    const session = sessions.get(sessionToken);
+    if (!session || session.expiresAt < new Date()) {
+        sessions.delete(sessionToken);
+        return null;
+    }
+    
+    return users.get(session.userId);
+}
+
+// Authentication API endpoints
+app.post('/api/auth/register', (req, res) => {
+    try {
+        const { name, email } = req.body;
+        
+        if (!name || !email) {
+            return res.status(400).json({ error: 'Name and email are required' });
+        }
+        
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+        
+        // Check if user already exists
+        if (Array.from(users.values()).some(user => user.email === email)) {
+            return res.status(409).json({ error: 'User already exists with this email' });
+        }
+        
+        // Create new user
+        const userId = Date.now().toString();
+        const user = {
+            id: userId,
+            email,
+            name,
+            createdAt: new Date(),
+            subscriptionStatus: 'none'
+        };
+        
+        users.set(userId, user);
+        
+        // Create session
+        const sessionToken = generateSessionToken();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        
+        sessions.set(sessionToken, {
+            userId,
+            expiresAt
+        });
+        
+        res.cookie('session_token', sessionToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            httpOnly: true,
+            secure: false, // Set to true in production
+            sameSite: 'strict'
+        });
+        
+        res.status(201).json({ 
+            success: true, 
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                subscription_status: user.subscriptionStatus
+            },
+            session_token: sessionToken 
+        });
+        
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Registration failed' });
+    }
+});
+
+app.post('/api/auth/login', (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        
+        if (!isValidEmail(email)) {
+            return res.status(400).json({ error: 'Invalid email format' });
+        }
+        
+        // Find user
+        const user = Array.from(users.values()).find(u => u.email === email);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Update last login
+        user.lastLogin = new Date();
+        
+        // Create new session
+        const sessionToken = generateSessionToken();
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        
+        sessions.set(sessionToken, {
+            userId: user.id,
+            expiresAt
+        });
+        
+        res.cookie('session_token', sessionToken, {
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            httpOnly: true,
+            secure: false, // Set to true in production
+            sameSite: 'strict'
+        });
+        
+        res.json({ 
+            success: true, 
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                subscription_status: user.subscriptionStatus || 'none'
+            },
+            session_token: sessionToken 
+        });
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    try {
+        const sessionToken = req.headers.authorization?.replace('Bearer ', '') || req.cookies?.session_token;
+        
+        if (sessionToken) {
+            sessions.delete(sessionToken);
+        }
+        
+        res.clearCookie('session_token');
+        res.json({ success: true });
+        
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Logout failed' });
+    }
+});
+
+app.get('/api/auth/me', (req, res) => {
+    try {
+        const user = getSessionUser(req);
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        res.json({ 
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                subscription_status: user.subscriptionStatus || 'none'
+            }
+        });
+        
+    } catch (error) {
+        console.error('Auth me error:', error);
+        res.status(500).json({ error: 'Authentication check failed' });
+    }
+});
 
 // API endpoint for World Bank data (CORS fix)
 app.get('/api/worldbank', async (req, res) => {

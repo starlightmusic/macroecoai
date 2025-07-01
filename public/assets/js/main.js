@@ -187,6 +187,8 @@ function closeDocumentModal() {
 document.addEventListener('DOMContentLoaded', () => {
     initSmoothScrolling();
     
+    // Note: Authentication is handled by auth.js which loads before this script
+    
     // Auto-load World Bank data on homepage
     if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
         fetchWorldBankData();

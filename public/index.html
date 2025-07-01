@@ -27,18 +27,45 @@
     <header class="bg-white shadow">
         <div class="container mx-auto px-4 py-4 flex items-center justify-between">
             <a href="index.html" class="text-xl font-semibold">MacroAI</a>
-            <nav class="hidden md:block">
-                <a href="index.html" class="mr-6">Home</a>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="index.html" class="hover:text-blue-600">Home</a>
                 <a href="subscribe.html" class="btn-secondary">Subscribe</a>
+                
+                <!-- Account Management - Unauthenticated -->
+                <div id="auth-unauthenticated" class="flex items-center space-x-4">
+                    <button id="login-btn" class="text-blue-600 hover:text-blue-800 font-medium">Sign In</button>
+                    <button id="register-btn" class="btn-primary text-sm">Sign Up</button>
+                </div>
+                
+                <!-- Account Management - Authenticated -->
+                <div id="auth-authenticated" class="hidden flex items-center space-x-4">
+                    <span id="user-welcome" class="text-slate-600">Welcome, <span id="user-name"></span>!</span>
+                    <button id="logout-btn" class="text-red-600 hover:text-red-800 font-medium">Sign Out</button>
+                </div>
             </nav>
-            <button id="theme-toggle" class="ml-4" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
-            <button class="md:hidden" aria-label="Open Menu" onclick="toggleMobileMenu()">
-                <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-            </button>
+            
+            <div class="flex items-center space-x-2">
+                <button id="theme-toggle" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
+                <button class="md:hidden" aria-label="Open Menu" onclick="toggleMobileMenu()">
+                    <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                </button>
+            </div>
         </div>
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
             <a href="index.html" class="block px-4 py-2">Home</a>
             <a href="subscribe.html" class="block px-4 py-2">Subscribe</a>
+            
+            <!-- Mobile Account Management - Unauthenticated -->
+            <div id="mobile-auth-unauthenticated" class="border-t">
+                <button id="mobile-login-btn" class="block w-full text-left px-4 py-2 text-blue-600">Sign In</button>
+                <button id="mobile-register-btn" class="block w-full text-left px-4 py-2 font-semibold">Sign Up</button>
+            </div>
+            
+            <!-- Mobile Account Management - Authenticated -->
+            <div id="mobile-auth-authenticated" class="hidden border-t">
+                <div class="px-4 py-2 text-slate-600">Welcome, <span id="mobile-user-name"></span>!</div>
+                <button id="mobile-logout-btn" class="block w-full text-left px-4 py-2 text-red-600">Sign Out</button>
+            </div>
         </div>
     </header>
 
@@ -180,6 +207,62 @@
         </div>
     </section>
 
+    <!-- Authentication Modals -->
+    
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Sign In</h2>
+                <button id="close-login-modal" class="text-slate-400 hover:text-slate-600">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="login-email" class="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                    <input type="email" id="login-email" name="email" class="form-input" required placeholder="Enter your email">
+                </div>
+                <button type="submit" class="btn-primary w-full" id="login-submit">Sign In</button>
+            </form>
+            <div id="login-error" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded"></div>
+            <div class="mt-4 text-center">
+                <p class="text-sm text-slate-600">Don't have an account? 
+                    <button id="switch-to-register" class="text-blue-600 hover:text-blue-800 font-medium">Sign up here</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Sign Up</h2>
+                <button id="close-register-modal" class="text-slate-400 hover:text-slate-600">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="register-form">
+                <div class="mb-4">
+                    <label for="register-name" class="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
+                    <input type="text" id="register-name" name="name" class="form-input" required placeholder="Enter your full name">
+                </div>
+                <div class="mb-4">
+                    <label for="register-email" class="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
+                    <input type="email" id="register-email" name="email" class="form-input" required placeholder="Enter your email">
+                </div>
+                <button type="submit" class="btn-primary w-full" id="register-submit">Sign Up</button>
+            </form>
+            <div id="register-error" class="hidden mt-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded"></div>
+            <div class="mt-4 text-center">
+                <p class="text-sm text-slate-600">Already have an account? 
+                    <button id="switch-to-login" class="text-blue-600 hover:text-blue-800 font-medium">Sign in here</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
     <footer class="bg-white py-6 text-center">
         <div class="container mx-auto px-4">
             <p class="mb-4">&copy; 2024 MacroAI Newsletter</p>
@@ -193,6 +276,7 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>lucide.createIcons();</script>
+    <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/forms.js"></script>
 </body>
