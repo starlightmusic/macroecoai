@@ -12,6 +12,14 @@
 .form-input:focus{outline:none;border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,0.3);} 
 .gradient-bg{background:linear-gradient(90deg,#1e40af,#10b981);} 
 
+/* Toggle Switch */
+input[type="checkbox"]:checked + div {
+    background-color: #10b981;
+}
+input[type="checkbox"]:checked + div .dot {
+    transform: translateX(100%);
+}
+
 /* World Bank Data Components */
 .loading-spinner{
     width:40px;

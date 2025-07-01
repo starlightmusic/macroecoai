@@ -3,6 +3,10 @@ function initSmoothScrolling(){document.querySelectorAll('a[href^="#"]').forEach
 function showLoading(e){e.disabled=true;e.classList.add('opacity-50','cursor-not-allowed');}
 function hideLoading(e){e.disabled=false;e.classList.remove('opacity-50','cursor-not-allowed');}
 
+// Global variables for filtering
+let allDocuments = [];
+let macroPovertyFilterEnabled = true;
+
 async function fetchWorldBankData() {
     const spinner = document.getElementById('loading-spinner');
     const errorMsg = document.getElementById('error-message');
@@ -26,36 +30,15 @@ async function fetchWorldBankData() {
         // Clear existing data
         tableBody.innerHTML = '';
         
-        // Process documents
+        // Store all documents and process them
         if (data.documents && Object.keys(data.documents).length > 0) {
-            Object.values(data.documents).forEach(doc => {
-                const row = document.createElement('tr');
-                row.className = 'border-b hover:bg-gray-50';
-                
-                const country = doc.count || 'N/A';
-                const title = doc.display_title || 'Untitled Document';
-                const pdfUrl = doc.pdfurl || '';
-                const txtUrl = doc.txturl || '';
-                
-                row.innerHTML = `
-                    <td class="px-4 py-3 font-medium">${country}</td>
-                    <td class="px-4 py-3">${title}</td>
-                    <td class="px-4 py-3 text-center">
-                        ${pdfUrl ? `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">PDF</a>` : 'N/A'}
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        ${txtUrl ? `<a href="${txtUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">Text</a>` : 'N/A'}
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                        ${txtUrl ? `<button onclick="showDocumentPreview('${txtUrl}', '${title.replace(/'/g, "&#39;")}')" class="btn-secondary text-sm">Preview</button>` : 'N/A'}
-                    </td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
+            allDocuments = Object.values(data.documents);
+            renderFilteredDocuments();
             
-            // Show table
+            // Show filter controls and table
+            const filterControls = document.getElementById('filter-controls');
             spinner.style.display = 'none';
+            filterControls.style.display = 'block';
             tableContainer.style.display = 'block';
         } else {
             throw new Error('No documents found in response');
@@ -65,6 +48,62 @@ async function fetchWorldBankData() {
         console.error('Error fetching World Bank data:', error);
         spinner.style.display = 'none';
         errorMsg.style.display = 'block';
+    }
+}
+
+function isMacroPovertyOutlook(title) {
+    // Pattern: "Macro Poverty Outlook for [Country] : [Month Year]"
+    const pattern = /^Macro Poverty Outlook for .+ : \w+ \d{4}$/;
+    return pattern.test(title);
+}
+
+function renderFilteredDocuments() {
+    const tableBody = document.getElementById('worldbank-data');
+    const documentCount = document.getElementById('document-count');
+    
+    // Clear existing data
+    tableBody.innerHTML = '';
+    
+    // Filter documents based on current filter state
+    let filteredDocuments = allDocuments;
+    if (macroPovertyFilterEnabled) {
+        filteredDocuments = allDocuments.filter(doc => 
+            isMacroPovertyOutlook(doc.display_title || '')
+        );
+    }
+    
+    // Render filtered documents
+    filteredDocuments.forEach(doc => {
+        const row = document.createElement('tr');
+        row.className = 'border-b hover:bg-gray-50';
+        
+        const country = doc.count || 'N/A';
+        const title = doc.display_title || 'Untitled Document';
+        const pdfUrl = doc.pdfurl || '';
+        const txtUrl = doc.txturl || '';
+        
+        row.innerHTML = `
+            <td class="px-4 py-3 font-medium">${country}</td>
+            <td class="px-4 py-3">${title}</td>
+            <td class="px-4 py-3 text-center">
+                ${pdfUrl ? `<a href="${pdfUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">PDF</a>` : 'N/A'}
+            </td>
+            <td class="px-4 py-3 text-center">
+                ${txtUrl ? `<a href="${txtUrl}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium">Text</a>` : 'N/A'}
+            </td>
+            <td class="px-4 py-3 text-center">
+                ${txtUrl ? `<button onclick="showDocumentPreview('${txtUrl}', '${title.replace(/'/g, "&#39;")}')" class="btn-secondary text-sm">Preview</button>` : 'N/A'}
+            </td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // Update document count
+    if (macroPovertyFilterEnabled) {
+        documentCount.textContent = `Showing ${filteredDocuments.length} of ${allDocuments.length} documents`;
+    } else {
+        documentCount.textContent = `Showing all ${allDocuments.length} documents`;
     }
 }
 
@@ -165,6 +204,17 @@ document.addEventListener('DOMContentLoaded', () => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeDocumentModal();
+            }
+        });
+    }
+    
+    // Setup filter toggle functionality
+    const filterToggle = document.getElementById('macro-poverty-filter');
+    if (filterToggle) {
+        filterToggle.addEventListener('change', (e) => {
+            macroPovertyFilterEnabled = e.target.checked;
+            if (allDocuments.length > 0) {
+                renderFilteredDocuments();
             }
         });
     }

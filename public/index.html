@@ -90,6 +90,24 @@
                 <p class="text-red-600 text-lg">Failed to load World Bank data. Please try again later.</p>
             </div>
             
+            <!-- Filter Controls -->
+            <div id="filter-controls" class="mb-6 p-4 bg-gray-50 rounded-lg" style="display: none;">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="macro-poverty-filter" checked class="sr-only">
+                            <div class="relative">
+                                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                            </div>
+                        </label>
+                        <span class="font-medium text-gray-700">Show only Macro Poverty Outlook reports</span>
+                    </div>
+                    <div id="document-count" class="text-sm text-gray-600"></div>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Filter documents by "Macro Poverty Outlook for [Country] : [Month Year]" format</p>
+            </div>
+
             <!-- Data Table -->
             <div id="data-table-container" class="overflow-x-auto" style="display: none;">
                 <table id="worldbank-table" class="wb-data-table w-full">
