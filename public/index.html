@@ -44,7 +44,12 @@
                 </div>
             </nav>
             
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-4">
+                <!-- Preview Counter -->
+                <div id="preview-counter" class="hidden md:block">
+                    <!-- Counter content will be populated by preview-tracker.js -->
+                </div>
+                
                 <button id="theme-toggle" aria-label="Toggle theme"><i data-lucide="moon"></i></button>
                 <button class="md:hidden" aria-label="Open Menu" onclick="toggleMobileMenu()">
                     <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
@@ -54,6 +59,11 @@
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
             <a href="index.html" class="block px-4 py-2">Home</a>
             <a href="subscribe.html" class="block px-4 py-2">Subscribe</a>
+            
+            <!-- Mobile Preview Counter -->
+            <div id="mobile-preview-counter" class="px-4 py-2 border-t">
+                <!-- Counter content will be populated by preview-tracker.js -->
+            </div>
             
             <!-- Mobile Account Management - Unauthenticated -->
             <div id="mobile-auth-unauthenticated" class="border-t">
@@ -276,6 +286,7 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>lucide.createIcons();</script>
+    <script src="assets/js/preview-tracker.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/forms.js"></script>

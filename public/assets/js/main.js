@@ -108,6 +108,12 @@ function renderFilteredDocuments() {
 }
 
 async function showDocumentPreview(txtUrl, title) {
+    // Check preview limits first
+    if (window.previewTracker && !window.previewTracker.usePreview()) {
+        // Preview limit reached and modal shown by previewTracker
+        return;
+    }
+    
     const modal = document.getElementById('document-modal');
     const modalTitle = document.getElementById('modal-title');
     const modalLoading = document.getElementById('modal-loading');

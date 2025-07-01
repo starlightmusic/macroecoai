@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_login DATETIME,
     subscription_status TEXT DEFAULT 'none',
-    preferences TEXT DEFAULT '{}'
+    preferences TEXT DEFAULT '{}',
+    preview_count INTEGER DEFAULT 0
 );
 
 -- Sessions table for authentication

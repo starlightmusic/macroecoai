@@ -67,7 +67,8 @@ app.post('/api/auth/register', (req, res) => {
             email,
             name,
             createdAt: new Date(),
-            subscriptionStatus: 'none'
+            subscriptionStatus: 'none',
+            previewCount: 0
         };
         
         users.set(userId, user);
@@ -94,7 +95,8 @@ app.post('/api/auth/register', (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                subscription_status: user.subscriptionStatus
+                subscription_status: user.subscriptionStatus,
+                preview_count: user.previewCount
             },
             session_token: sessionToken 
         });
@@ -148,7 +150,8 @@ app.post('/api/auth/login', (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                subscription_status: user.subscriptionStatus || 'none'
+                subscription_status: user.subscriptionStatus || 'none',
+                preview_count: user.previewCount || 0
             },
             session_token: sessionToken 
         });
@@ -189,13 +192,36 @@ app.get('/api/auth/me', (req, res) => {
                 id: user.id,
                 email: user.email,
                 name: user.name,
-                subscription_status: user.subscriptionStatus || 'none'
+                subscription_status: user.subscriptionStatus || 'none',
+                preview_count: user.previewCount || 0
             }
         });
         
     } catch (error) {
         console.error('Auth me error:', error);
         res.status(500).json({ error: 'Authentication check failed' });
+    }
+});
+
+app.post('/api/auth/increment-preview', (req, res) => {
+    try {
+        const user = getSessionUser(req);
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+        
+        // Increment preview count
+        user.previewCount = (user.previewCount || 0) + 1;
+        
+        res.json({ 
+            success: true,
+            preview_count: user.previewCount
+        });
+        
+    } catch (error) {
+        console.error('Increment preview error:', error);
+        res.status(500).json({ error: 'Failed to increment preview count' });
     }
 });
 

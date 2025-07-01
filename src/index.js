@@ -16,7 +16,7 @@ async function getSessionUser(request, env) {
   
   try {
     const result = await env.DB.prepare(`
-      SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.subscription_status
+      SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.subscription_status, u.preview_count
       FROM users u 
       JOIN sessions s ON u.id = s.user_id 
       WHERE s.token = ? AND s.expires_at > datetime('now')
@@ -98,7 +98,8 @@ async function handleAuthRegister(request, env) {
       id: userId,
       email,
       name,
-      subscription_status: 'none'
+      subscription_status: 'none',
+      preview_count: 0
     };
     
     return new Response(JSON.stringify({ 
@@ -177,7 +178,8 @@ async function handleAuthLogin(request, env) {
         id: user.id,
         email: user.email,
         name: user.name,
-        subscription_status: user.subscription_status || 'none'
+        subscription_status: user.subscription_status || 'none',
+        preview_count: user.preview_count || 0
       },
       session_token: sessionToken 
     }), {
@@ -259,6 +261,53 @@ async function handleAuthMe(request, env) {
   } catch (error) {
     console.error('Auth me error:', error);
     return new Response(JSON.stringify({ error: 'Authentication check failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+}
+
+async function handleAuthIncrementPreview(request, env) {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+  
+  try {
+    const user = await getSessionUser(request, env);
+    
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+    
+    // Increment preview count
+    const result = await env.DB.prepare(`
+      UPDATE users 
+      SET preview_count = preview_count + 1 
+      WHERE id = ?
+    `).bind(user.id).run();
+    
+    // Get updated count
+    const updatedUser = await env.DB.prepare(`
+      SELECT preview_count FROM users WHERE id = ?
+    `).bind(user.id).first();
+    
+    return new Response(JSON.stringify({ 
+      success: true,
+      preview_count: updatedUser.preview_count 
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+    
+  } catch (error) {
+    console.error('Increment preview error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to increment preview count' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
     });
@@ -534,6 +583,9 @@ export default {
         
       case '/api/auth/me':
         return await handleAuthMe(request, env);
+        
+      case '/api/auth/increment-preview':
+        return await handleAuthIncrementPreview(request, env);
         
       default:
         // Try to serve static assets directly

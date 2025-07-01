@@ -4,11 +4,12 @@ This site provides an AI-powered macroeconomics newsletter with a free beta subs
 
 - **Dual Deployment**: Can run on both Express.js (local development) and Cloudflare Workers (production)
 - **User Authentication**: Email-based registration and login system
+- **Preview Limit System**: 3 free document previews for guests, unlimited for registered users
 - **World Bank Integration**: Live economic research dashboard with document filtering
 - **AI-Powered Summaries**: Gemini AI generates summaries of World Bank documents
 - **Responsive Design**: Mobile-first design with Tailwind CSS
 
-Key features include user registration/login, World Bank document filtering, AI document summaries, and a modern responsive interface.
+Key features include user registration/login, preview usage tracking, World Bank document filtering, AI document summaries, and a modern responsive interface.
 
 ## Development
 
@@ -82,13 +83,22 @@ wrangler d1 execute macroecoai-db --command="SELECT name FROM sqlite_master WHER
 ```
 You should see `users` and `sessions` tables listed.
 
-#### 5. (Optional) Check Database Contents:
+#### 5. (Optional) Migrate Existing Database:
+If you already have a users table without the `preview_count` column, run this migration:
 ```bash
-# View all users
-wrangler d1 execute macroecoai-db --command="SELECT * FROM users;"
+wrangler d1 execute macroecoai-db --file=migration-preview-count.sql
+```
+
+#### 6. (Optional) Check Database Contents:
+```bash
+# View all users with preview counts
+wrangler d1 execute macroecoai-db --command="SELECT id, email, name, preview_count FROM users;"
 
 # View active sessions
 wrangler d1 execute macroecoai-db --command="SELECT * FROM sessions WHERE expires_at > datetime('now');"
+
+# Check database schema to verify preview_count column exists
+wrangler d1 execute macroecoai-db --command="PRAGMA table_info(users);"
 ```
 
 ### For Local Development
@@ -188,16 +198,18 @@ macroecoai/
 │   │   ├── css/
 │   │   │   └── style.css  # Custom styles + auth modal styling
 │   │   └── js/
-│   │       ├── auth.js    # Authentication state management
-│   │       ├── main.js    # Core functionality + World Bank filtering
-│   │       └── forms.js   # Form validation
+│   │       ├── auth.js            # Authentication state management
+│   │       ├── preview-tracker.js # Preview limit tracking and UI
+│   │       ├── main.js            # Core functionality + World Bank filtering
+│   │       └── forms.js           # Form validation
 │   ├── robots.txt
 │   └── sitemap.xml
-├── server.js           # Express.js server with in-memory auth
-├── schema.sql          # Database schema for users and sessions
-├── package.json        # Node.js dependencies and scripts
-├── wrangler.jsonc      # Cloudflare Workers config with D1 binding
-└── README.md          # This file
+├── server.js                      # Express.js server with in-memory auth
+├── schema.sql                     # Database schema for users and sessions
+├── migration-preview-count.sql    # Migration to add preview_count column
+├── package.json                   # Node.js dependencies and scripts
+├── wrangler.jsonc                 # Cloudflare Workers config with D1 binding
+└── README.md                     # This file
 ```
 
 ## Features
@@ -209,11 +221,21 @@ macroecoai/
 - **Responsive UI**: Authentication works on desktop and mobile
 - **Real-time updates**: UI dynamically updates based on login state
 
+### Preview Limit System
+- **Free tier**: 3 free document previews for unregistered users
+- **Usage tracking**: Real-time countdown showing remaining free previews
+- **Registration prompt**: Attractive modal encouraging signup when limit reached
+- **Unlimited access**: Registered users get unlimited document previews
+- **Preview counter**: Shows total preview usage for authenticated users
+- **Persistent tracking**: Uses localStorage for guests, database for users
+- **Cross-device sync**: Preview counts sync across devices for registered users
+
 ### World Bank Integration
 - **Live data**: Automatically fetches latest economic research documents
 - **Document filtering**: Toggle filter for "Macro Poverty Outlook" reports
 - **AI summaries**: Generate document summaries using Gemini AI
 - **Document preview**: View document content in modal with user input field
+- **Preview limits**: Enforced before document loading to encourage registration
 
 ### Technical Features
 - **Dual deployment**: Works with both Express.js and Cloudflare Workers
@@ -228,6 +250,7 @@ macroecoai/
 - `POST /api/auth/login` - User login (email only)
 - `POST /api/auth/logout` - User logout and session termination
 - `GET /api/auth/me` - Get current authenticated user info
+- `POST /api/auth/increment-preview` - Increment preview count for authenticated users
 
 ### World Bank Integration
 - `GET /api/worldbank` - Fetch World Bank documents (CORS proxy)
@@ -252,6 +275,21 @@ wrangler d1 execute macroecoai-db --command=".schema"
 - **Local development**: Check server logs for in-memory storage state
 - **Production**: Verify D1 database has correct tables and data
 - **Sessions**: Check browser localStorage for `session_token`
+
+### Preview System Issues
+```bash
+# Check if preview_count column exists
+wrangler d1 execute macroecoai-db --command="PRAGMA table_info(users);"
+
+# Reset a user's preview count
+wrangler d1 execute macroecoai-db --command="UPDATE users SET preview_count = 0 WHERE email = 'user@example.com';"
+
+# Check localStorage preview count (in browser console)
+localStorage.getItem('free_preview_count')
+
+# Reset localStorage preview count (in browser console)
+localStorage.removeItem('free_preview_count')
+```
 
 ### Common Setup Issues
 1. **Missing API key**: Ensure `GEMINI_API_KEY` is set in `.env`/`.dev.vars`

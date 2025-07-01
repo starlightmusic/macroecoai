@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-qTFutO/checked-fetch.js
+// .wrangler/tmp/bundle-U7yP55/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -42,7 +42,7 @@ async function getSessionUser(request, env) {
   if (!sessionToken) return null;
   try {
     const result = await env.DB.prepare(`
-      SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.subscription_status
+      SELECT u.id, u.email, u.name, u.created_at, u.last_login, u.subscription_status, u.preview_count
       FROM users u 
       JOIN sessions s ON u.id = s.user_id 
       WHERE s.token = ? AND s.expires_at > datetime('now')
@@ -109,7 +109,8 @@ async function handleAuthRegister(request, env) {
       id: userId,
       email,
       name,
-      subscription_status: "none"
+      subscription_status: "none",
+      preview_count: 0
     };
     return new Response(JSON.stringify({
       success: true,
@@ -175,7 +176,8 @@ async function handleAuthLogin(request, env) {
         id: user.id,
         email: user.email,
         name: user.name,
-        subscription_status: user.subscription_status || "none"
+        subscription_status: user.subscription_status || "none",
+        preview_count: user.preview_count || 0
       },
       session_token: sessionToken
     }), {
@@ -253,6 +255,45 @@ async function handleAuthMe(request, env) {
   }
 }
 __name(handleAuthMe, "handleAuthMe");
+async function handleAuthIncrementPreview(request, env) {
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+  try {
+    const user = await getSessionUser(request, env);
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      });
+    }
+    const result = await env.DB.prepare(`
+      UPDATE users 
+      SET preview_count = preview_count + 1 
+      WHERE id = ?
+    `).bind(user.id).run();
+    const updatedUser = await env.DB.prepare(`
+      SELECT preview_count FROM users WHERE id = ?
+    `).bind(user.id).first();
+    return new Response(JSON.stringify({
+      success: true,
+      preview_count: updatedUser.preview_count
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  } catch (error) {
+    console.error("Increment preview error:", error);
+    return new Response(JSON.stringify({ error: "Failed to increment preview count" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+    });
+  }
+}
+__name(handleAuthIncrementPreview, "handleAuthIncrementPreview");
 async function handleWorldBankAPI(request) {
   try {
     const response = await fetch("https://search.worldbank.org/api/v3/wds?format=json&owner=EMFMD&fl=count,txturl&strdate=2024-01-01&rows=100");
@@ -477,6 +518,8 @@ var src_default = {
         return await handleAuthLogout(request, env);
       case "/api/auth/me":
         return await handleAuthMe(request, env);
+      case "/api/auth/increment-preview":
+        return await handleAuthIncrementPreview(request, env);
       default:
         try {
           return await env.ASSETS.fetch(request);
@@ -528,7 +571,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-qTFutO/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-U7yP55/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -560,7 +603,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-qTFutO/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-U7yP55/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

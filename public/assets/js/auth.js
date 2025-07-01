@@ -146,6 +146,11 @@ class AuthManager {
                 this.hideLoginModal();
                 this.updateUI();
                 
+                // Notify preview tracker of login
+                if (window.previewTracker) {
+                    window.previewTracker.onUserLogin();
+                }
+                
                 // Show success message
                 this.showWelcomeMessage(data.user.name);
             } else {
@@ -190,6 +195,11 @@ class AuthManager {
                 this.hideRegisterModal();
                 this.updateUI();
                 
+                // Notify preview tracker of login
+                if (window.previewTracker) {
+                    window.previewTracker.onUserLogin();
+                }
+                
                 // Show success message
                 this.showWelcomeMessage(data.user.name, true);
             } else {
@@ -220,6 +230,11 @@ class AuthManager {
         } finally {
             this.clearSession();
             this.updateUI();
+            
+            // Notify preview tracker of logout
+            if (window.previewTracker) {
+                window.previewTracker.onUserLogout();
+            }
         }
     }
     
@@ -257,6 +272,11 @@ class AuthManager {
             authAuthenticated.classList.add('hidden');
             mobileAuthUnauthenticated.classList.remove('hidden');
             mobileAuthAuthenticated.classList.add('hidden');
+        }
+        
+        // Update preview counter
+        if (window.previewTracker) {
+            window.previewTracker.updatePreviewCounter();
         }
     }
     
