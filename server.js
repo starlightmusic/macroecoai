@@ -407,18 +407,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Route for specific pages
-app.get('/subscribe', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'subscribe.html'));
-});
-
-app.get('/article', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'article.html'));
-});
-
-app.get('/success', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'success.html'));
-});
+// Removed subscription-related page routes (subscribe, article, success)
+// These pages were deleted as part of removing subscription features
 
 // Handle 404 errors
 app.use((req, res) => {

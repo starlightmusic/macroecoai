@@ -37,17 +37,28 @@ class PreviewTracker {
     
     // Increment preview count and return whether preview is allowed
     usePreview() {
+        console.log('🔍 usePreview called');
+        console.log('🔍 authManager available:', !!window.authManager);
+        console.log('🔍 isLoggedIn:', window.authManager ? window.authManager.isLoggedIn() : 'N/A');
+        
         if (window.authManager && window.authManager.isLoggedIn()) {
             // For authenticated users, increment via API
+            console.log('🔍 Incrementing authenticated preview');
             this.incrementAuthenticatedPreview();
             return true;
         } else {
             // For unauthenticated users, use localStorage
             const currentCount = this.getFreePreviewCount();
+            console.log('🔍 Current free preview count:', currentCount);
+            console.log('🔍 Max free previews:', this.maxFreepreviews);
+            
             if (currentCount >= this.maxFreepreviews) {
+                console.log('🔍 Preview limit reached, showing registration prompt');
                 this.showRegistrationPrompt();
                 return false;
             }
+            
+            console.log('🔍 Incrementing free preview count to:', currentCount + 1);
             this.setFreePreviewCount(currentCount + 1);
             return true;
         }
@@ -56,6 +67,7 @@ class PreviewTracker {
     // Increment preview count for authenticated users via API
     async incrementAuthenticatedPreview() {
         try {
+            console.log('🔍 incrementAuthenticatedPreview called');
             const response = await fetch('/api/auth/increment-preview', {
                 method: 'POST',
                 headers: {
@@ -64,13 +76,21 @@ class PreviewTracker {
                 }
             });
             
+            console.log('🔍 API response status:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
+                console.log('🔍 API response data:', data);
+                
                 // Update user object with new preview count
                 if (window.authManager.currentUser) {
+                    const oldCount = window.authManager.currentUser.preview_count;
                     window.authManager.currentUser.preview_count = data.preview_count;
+                    console.log('🔍 Updated preview count from', oldCount, 'to', data.preview_count);
                 }
                 this.updatePreviewCounter();
+            } else {
+                console.error('🔍 API error:', response.status, await response.text());
             }
         } catch (error) {
             console.error('Error incrementing preview count:', error);
@@ -79,14 +99,20 @@ class PreviewTracker {
     
     // Update the preview counter in the UI
     updatePreviewCounter() {
+        console.log('🔄 updatePreviewCounter called');
         const counterElement = document.getElementById('preview-counter');
         const mobileCounterElement = document.getElementById('mobile-preview-counter');
+        
+        console.log('🔄 Counter elements found:', !!counterElement, !!mobileCounterElement);
+        console.log('🔄 authManager available:', !!window.authManager);
+        console.log('🔄 isLoggedIn:', window.authManager ? window.authManager.isLoggedIn() : 'N/A');
         
         let content = '';
         
         if (window.authManager && window.authManager.isLoggedIn()) {
             // Show total previews for authenticated users
             const count = window.authManager.currentUser?.preview_count || 0;
+            console.log('🔄 Authenticated user preview count:', count);
             content = `
                 <span class="text-sm text-slate-600">
                     Previews: <span class="font-semibold text-blue-600">${count}</span>
@@ -96,6 +122,8 @@ class PreviewTracker {
             // Show remaining previews for unauthenticated users
             const remaining = this.getRemainingFreePreviews();
             const used = this.getFreePreviewCount();
+            
+            console.log('🔄 Unauthenticated user - remaining:', remaining, 'used:', used);
             
             if (remaining > 0) {
                 content = `
@@ -111,6 +139,8 @@ class PreviewTracker {
                 `;
             }
         }
+        
+        console.log('🔄 Setting content:', content.trim());
         
         // Update both desktop and mobile counters
         if (counterElement) {
@@ -212,13 +242,21 @@ class PreviewTracker {
     
     // Clear preview count when user logs in (transfer to authenticated tracking)
     onUserLogin() {
+        console.log('🔄 onUserLogin called');
+        console.log('🔄 Current user object:', window.authManager?.currentUser);
+        console.log('🔄 User preview count:', window.authManager?.currentUser?.preview_count);
+        
         // Clear the localStorage count since we're now tracking server-side
+        const oldLocalCount = this.getFreePreviewCount();
         localStorage.removeItem(this.storageKey);
+        console.log('🔄 Cleared localStorage count (was:', oldLocalCount, ')');
+        
         this.updatePreviewCounter();
     }
     
     // Restore local tracking when user logs out
     onUserLogout() {
+        console.log('🔄 onUserLogout called');
         this.updatePreviewCounter();
     }
 }
@@ -226,9 +264,40 @@ class PreviewTracker {
 // Initialize preview tracker when DOM is loaded
 let previewTracker;
 
-document.addEventListener('DOMContentLoaded', () => {
-    previewTracker = new PreviewTracker();
-});
+// Create a proxy object that will queue calls until the real tracker is ready
+window.previewTracker = {
+    usePreview: () => {
+        if (previewTracker) {
+            return previewTracker.usePreview();
+        } else {
+            console.warn('PreviewTracker not yet initialized, allowing preview');
+            return true;
+        }
+    },
+    updatePreviewCounter: () => {
+        if (previewTracker) {
+            previewTracker.updatePreviewCounter();
+        }
+    },
+    onUserLogin: () => {
+        if (previewTracker) {
+            previewTracker.onUserLogin();
+        }
+    },
+    onUserLogout: () => {
+        if (previewTracker) {
+            previewTracker.onUserLogout();
+        }
+    }
+};
 
-// Export for use in other modules
-window.previewTracker = previewTracker;
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing PreviewTracker');
+    previewTracker = new PreviewTracker();
+    
+    // Replace the proxy with the real tracker
+    window.previewTracker = previewTracker;
+    
+    // Initialize the counter display
+    previewTracker.updatePreviewCounter();
+});

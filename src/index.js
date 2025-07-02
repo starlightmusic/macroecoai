@@ -554,14 +554,8 @@ export default {
       case '/':
         return env.ASSETS.fetch(new Request(url.origin + '/index.html'));
         
-      case '/subscribe':
-        return env.ASSETS.fetch(new Request(url.origin + '/subscribe.html'));
-        
-      case '/article':
-        return env.ASSETS.fetch(new Request(url.origin + '/article.html'));
-        
-      case '/success':
-        return env.ASSETS.fetch(new Request(url.origin + '/success.html'));
+      // Removed subscription-related page routes (subscribe, article, success)
+      // These pages were deleted as part of removing subscription features
         
       case '/api/worldbank':
         return await handleWorldBankAPI(request);

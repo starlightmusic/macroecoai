@@ -35,6 +35,7 @@ class AuthManager {
             if (response.ok) {
                 const data = await response.json();
                 this.setUser(data.user);
+                this.updateUI(); // Make sure UI updates when session is validated
             } else {
                 this.clearSession();
             }
@@ -239,6 +240,8 @@ class AuthManager {
     }
     
     setUser(user) {
+        console.log('🔑 setUser called with:', user);
+        console.log('🔑 Preview count in user object:', user?.preview_count);
         this.currentUser = user;
         this.isAuthenticated = true;
     }

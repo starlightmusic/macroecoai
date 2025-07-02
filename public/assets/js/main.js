@@ -195,6 +195,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Note: Authentication is handled by auth.js which loads before this script
     
+    // Add hero register button event listener
+    const heroRegisterBtn = document.getElementById('hero-register-btn');
+    if (heroRegisterBtn) {
+        heroRegisterBtn.addEventListener('click', () => {
+            if (window.authManager) {
+                window.authManager.showRegisterModal();
+            }
+        });
+    }
+    
     // Auto-load World Bank data on homepage
     if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
         fetchWorldBankData();

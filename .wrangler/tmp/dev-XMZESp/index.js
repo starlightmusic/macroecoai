@@ -1,7 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-U7yP55/checked-fetch.js
+// .wrangler/tmp/bundle-aR5r8S/checked-fetch.js
 var urls = /* @__PURE__ */ new Set();
 function checkURL(request, init) {
   const url = request instanceof URL ? request : new URL(
@@ -498,12 +498,8 @@ var src_default = {
     switch (pathname) {
       case "/":
         return env.ASSETS.fetch(new Request(url.origin + "/index.html"));
-      case "/subscribe":
-        return env.ASSETS.fetch(new Request(url.origin + "/subscribe.html"));
-      case "/article":
-        return env.ASSETS.fetch(new Request(url.origin + "/article.html"));
-      case "/success":
-        return env.ASSETS.fetch(new Request(url.origin + "/success.html"));
+      // Removed subscription-related page routes (subscribe, article, success)
+      // These pages were deleted as part of removing subscription features
       case "/api/worldbank":
         return await handleWorldBankAPI(request);
       case "/api/worldbank/text":
@@ -571,7 +567,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx)
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-U7yP55/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-aR5r8S/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -603,7 +599,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-U7yP55/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-aR5r8S/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
