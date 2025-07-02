@@ -268,6 +268,31 @@ html.dark body{background-color:#0f172a;color:#e2e8f0;}
 html.dark .bg-white{background-color:#1e293b!important;}
 html.dark .bg-slate-50{background-color:#0f172a!important;}
 html.dark .text-slate-800{color:#e2e8f0!important;}
-html.dark .card{background-color:#1e293b;color:#e2e8f0;}
+html.dark .text-slate-600{color:#94a3b8!important;}
+html.dark .text-slate-700{color:#cbd5e1!important;}
+html.dark .card{background-color:#1e293b;color:#e2e8f0;border:1px solid #334155;}
 html.dark footer{background-color:#1e293b;color:#e2e8f0;}
+html.dark header{background-color:#1e293b!important;box-shadow:0 1px 3px rgba(0,0,0,0.3)!important;}
 html.dark .gradient-bg{background:linear-gradient(90deg,#1e293b,#0d9488);}
+html.dark .wb-data-table{background-color:#1e293b;color:#e2e8f0;}
+html.dark .wb-data-table thead{background-color:#334155;}
+html.dark .wb-data-table th{color:#e2e8f0;}
+html.dark .wb-data-table tbody tr:nth-child(even){background-color:#334155;}
+html.dark .wb-data-table tbody tr:hover{background-color:#475569!important;}
+html.dark .form-input{background-color:#334155;border-color:#475569;color:#e2e8f0;}
+html.dark .form-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,0.3);}
+html.dark .modal-content{background-color:#1e293b;color:#e2e8f0;}
+html.dark .modal-header{border-bottom-color:#334155;}
+html.dark .modal-footer{border-top-color:#334155;}
+html.dark .error-message{background-color:#7f1d1d;border-color:#991b1b;color:#fecaca;}
+html.dark .bg-gray-50{background-color:#334155!important;}
+html.dark .text-gray-600{color:#94a3b8!important;}
+html.dark .text-gray-700{color:#cbd5e1!important;}
+html.dark .text-gray-500{color:#64748b!important;}
+html.dark .border-gray-300{border-color:#475569!important;}
+html.dark #mobile-menu{background-color:#1e293b!important;border-top-color:#334155!important;}
+html.dark .bg-gray-100{background-color:#334155!important;}
+html.dark .text-red-600{color:#f87171!important;}
+html.dark .text-red-700{color:#fca5a5!important;}
+html.dark .bg-red-100{background-color:#7f1d1d!important;}
+html.dark .border-red-300{border-color:#991b1b!important;}

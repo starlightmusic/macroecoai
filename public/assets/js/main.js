@@ -190,8 +190,55 @@ function closeDocumentModal() {
     modal.style.display = 'none';
 }
 
+function initThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    
+    // Check for saved theme preference or default to light mode
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.classList.add('dark');
+        updateThemeIcon(true);
+    } else {
+        html.classList.remove('dark');
+        updateThemeIcon(false);
+    }
+    
+    // Add click event listener
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                updateThemeIcon(false);
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeIcon(true);
+            }
+        });
+    }
+}
+
+function updateThemeIcon(isDark) {
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('i');
+        if (icon) {
+            icon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            // Refresh lucide icons
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initSmoothScrolling();
+    initThemeToggle();
     
     // Note: Authentication is handled by auth.js which loads before this script
     
