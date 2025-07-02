@@ -29,10 +29,18 @@ class PreviewTracker {
     
     // Check if user can preview (for unauthenticated users)
     canPreview() {
+        console.log('🔍 canPreview called');
+        console.log('🔍 authManager available:', !!window.authManager);
+        console.log('🔍 isLoggedIn:', window.authManager ? window.authManager.isLoggedIn() : 'N/A');
+        
         if (window.authManager && window.authManager.isLoggedIn()) {
+            console.log('🔍 User is authenticated, allowing preview');
             return true; // Authenticated users can always preview
         }
-        return this.getFreePreviewCount() < this.maxFreepreviews;
+        
+        const remaining = this.getRemainingFreePreviews();
+        console.log('🔍 Unauthenticated user, remaining previews:', remaining);
+        return remaining > 0;
     }
     
     // Increment preview count and return whether preview is allowed
@@ -146,6 +154,7 @@ class PreviewTracker {
         if (counterElement) {
             counterElement.innerHTML = content;
             counterElement.classList.remove('hidden');
+            counterElement.classList.add('md:block');
         }
         
         if (mobileCounterElement) {
@@ -243,6 +252,8 @@ class PreviewTracker {
     // Clear preview count when user logs in (transfer to authenticated tracking)
     onUserLogin() {
         console.log('🔄 onUserLogin called');
+        console.log('🔄 authManager available:', !!window.authManager);
+        console.log('🔄 isLoggedIn:', window.authManager ? window.authManager.isLoggedIn() : 'N/A');
         console.log('🔄 Current user object:', window.authManager?.currentUser);
         console.log('🔄 User preview count:', window.authManager?.currentUser?.preview_count);
         
@@ -251,7 +262,10 @@ class PreviewTracker {
         localStorage.removeItem(this.storageKey);
         console.log('🔄 Cleared localStorage count (was:', oldLocalCount, ')');
         
-        this.updatePreviewCounter();
+        // Add a small delay to ensure auth state is fully updated
+        setTimeout(() => {
+            this.updatePreviewCounter();
+        }, 100);
     }
     
     // Restore local tracking when user logs out

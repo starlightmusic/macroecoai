@@ -320,7 +320,5 @@ let authManager;
 
 document.addEventListener('DOMContentLoaded', () => {
     authManager = new AuthManager();
+    window.authManager = authManager;
 });
-
-// Export for use in other modules
-window.authManager = authManager;
